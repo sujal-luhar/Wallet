@@ -1,0 +1,129 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+
+// ==========================================
+// 1. NEXTAUTH CORE (Identity)
+// ==========================================
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  phone         String?   @unique // Essential for P2P user discovery
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+  password      String?   // If using Credentials provider instead of Google/GitHub
+
+  // A User always has a personal Wallet
+  Wallet        Wallet?   @relation("UserWallet")
+
+  // A User CAN optionally have a Merchant profile linked to them
+  MerchantProfile MerchantProfile?
+
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+// ==========================================
+// 2. DOMAIN LOGIC (Roles & Profiles)
+// ==========================================
+
+// If the User clicks "Become a Merchant", we create this record.
+// They still log in with the same email, but now they have a business identity.
+model MerchantProfile {
+  id            String   @id @default(cuid())
+  userId        String   @unique
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  businessName  String
+  supportEmail  String?
+  
+  // The Merchant gets their own separate wallet for business earnings
+  Wallet        Wallet?  @relation("MerchantWallet")
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+// ==========================================
+// 3. FINANCIAL CORE (Wallets & Transactions)
+// ==========================================
+
+model Wallet {
+  id                String   @id @default(cuid())
+  
+  // Stored in BigInt (Cents/Paise) to prevent integer overflow at ₹2.14 Cr
+  balance           BigInt   @default(0) // STORED IN CENTS/PAISE (e.g., 5000 = $50.00)
+  locked            BigInt   @default(0) // Locked during pending withdrawals/transfers
+  currency          String   @default("INR")
+  
+  // A wallet belongs to EITHER a User OR a MerchantProfile (one will be null)
+  userId            String?  @unique
+  user              User?    @relation("UserWallet", fields: [userId], references: [id], onDelete: Cascade)
+  
+  merchantId        String?  @unique
+  merchantProfile   MerchantProfile? @relation("MerchantWallet", fields: [merchantId], references: [id], onDelete: Cascade)
+
+  // Relations for the Ledger
+  sentTransactions     Transaction[] @relation("SourceWallet")
+  receivedTransactions Transaction[] @relation("DestinationWallet")
+
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  // Ensure a wallet doesn't accidentally belong to both or neither
+  @@index([userId])
+  @@index([merchantId])
+}
+
+model Transaction {
+  id                  String   @id @default(cuid())
+  amount              BigInt      // Stored in cents/paise
+  type                TxnType
+  status              TxnStatus @default(PENDING)
+  
+  // Idempotency & Reference Keys
+  // For Bank Webhooks: The unique ID given by HDFC/Stripe to prevent double-processing
+  idempotencyKey      String?   @unique // Prevents double-submitting internal P2P clicks
+  externalReferenceId String?   @unique // Webhook reference ID from Bank/Stripe
+  failureReason       String?   // Reason if status == FAILED (e.g. "Insufficient Balance")
+
+  // Where did the money come from? (Null if depositing from Bank)
+  sourceWalletId      String?
+  sourceWallet        Wallet?  @relation("SourceWallet", fields: [sourceWalletId], references: [id])
+
+  // Where is the money going? (Null if withdrawing to Bank)
+  destinationWalletId String?
+  destinationWallet   Wallet?  @relation("DestinationWallet", fields: [destinationWalletId], references: [id])
+
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  // High-performance compound indexes for paginated history queries
+  @@index([sourceWalletId, createdAt(sort: Desc)])
+  @@index([destinationWalletId, createdAt(sort: Desc)])
+}
+
+enum TxnType {
+  DEPOSIT         // Bank -> Wallet
+  WITHDRAWAL      // Wallet -> Bank
+  P2P_TRANSFER    // User Wallet -> User Wallet
+  MERCHANT_PAYMENT// User Wallet -> Merchant Wallet
+}
+
+enum TxnStatus {
+  PENDING
+  PROCESSING // Used when AWS Lambda is currently talking to the Bank
+  SUCCESS
+  FAILED
+}
