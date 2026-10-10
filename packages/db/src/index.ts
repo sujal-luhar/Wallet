@@ -15,17 +15,30 @@ const prismaClientSingleton = () => {
   }).$extends(withAccelerate());
 };
 
-declare global {
-  var prismaGlobal: undefined | ReturnType<typeof prismaClientSingleton>;
-}
+type ExtendedPrismaClient = ReturnType<typeof prismaClientSingleton>;
 
-export const db =
-  (globalThis.prismaGlobal ?? prismaClientSingleton()) as ReturnType<
-    typeof prismaClientSingleton
-  >;
+const globalForPrisma = globalThis as unknown as {
+  prismaGlobal: ExtendedPrismaClient | undefined;
+};
+
+export const db = (
+  globalForPrisma.prismaGlobal ?? prismaClientSingleton()
+) as unknown as PrismaClient;
+
+// export const db = globalForPrisma.prismaGlobal ?? prismaClientSingleton();
+
+// // declare global {
+// //   var prismaGlobal: undefined | ReturnType<typeof prismaClientSingleton>;
+// // }
+
+// // export const db =
+// //   (globalThis.prismaGlobal ?? prismaClientSingleton()) as ReturnType<
+// //     typeof prismaClientSingleton
+// //   >;
+
 
 if (process.env.NODE_ENV !== "production") {
-  globalThis.prismaGlobal = db;
+  globalForPrisma.prismaGlobal = db as unknown as ExtendedPrismaClient;
 }
 
 export * from "@prisma/client";

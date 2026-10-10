@@ -27,6 +27,9 @@ model User {
   // A User always has a personal Wallet
   Wallet        Wallet?   @relation("UserWallet")
 
+  accounts      Account[]
+  // sessions      Session[]
+
   // A User CAN optionally have a Merchant profile linked to them
   MerchantProfile MerchantProfile?
 
@@ -98,6 +101,11 @@ model Transaction {
   externalReferenceId String?   @unique // Webhook reference ID from Bank/Stripe
   failureReason       String?   // Reason if status == FAILED (e.g. "Insufficient Balance")
 
+  // Refund Tracking
+  originalTransactionId String?       @unique
+  originalTransaction   Transaction?  @relation("RefundRelation", fields: [originalTransactionId], references: [id])
+  refundTransaction     Transaction?  @relation("RefundRelation")
+
   // Where did the money come from? (Null if depositing from Bank)
   sourceWalletId      String?
   sourceWallet        Wallet?  @relation("SourceWallet", fields: [sourceWalletId], references: [id])
@@ -114,11 +122,47 @@ model Transaction {
   @@index([destinationWalletId, createdAt(sort: Desc)])
 }
 
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+// model Session {
+//   id           String   @id @default(cuid())
+//   sessionToken String   @unique
+//   userId       String
+//   expires      DateTime
+//   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+// }
+
+model VerificationToken {
+  identifier String   @id
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
 enum TxnType {
   DEPOSIT         // Bank -> Wallet
   WITHDRAWAL      // Wallet -> Bank
   P2P_TRANSFER    // User Wallet -> User Wallet
   MERCHANT_PAYMENT// User Wallet -> Merchant Wallet
+  REFUND
 }
 
 enum TxnStatus {
@@ -126,4 +170,5 @@ enum TxnStatus {
   PROCESSING // Used when AWS Lambda is currently talking to the Bank
   SUCCESS
   FAILED
+  REFUNDED
 }
