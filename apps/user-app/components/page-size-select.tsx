@@ -7,7 +7,7 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
+} from "@wallet/ui/components/ui/select";
 
 interface PageSizeSelectProps {
   currentLimit: number;

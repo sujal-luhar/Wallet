@@ -1,4 +1,4 @@
-import { authOptions } from "@/lib/auth";
+import { authOptions } from "@wallet/auth";
 import { db } from "@wallet/db";
 import { getServerSession } from "next-auth";
 import { getRecentTransactions } from "./transactions";

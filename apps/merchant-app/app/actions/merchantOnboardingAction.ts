@@ -1,59 +1,47 @@
-"use server";
+"use server"
 
-import { cookies } from "next/headers";
-import { redirect } from "next/navigation";
-import { db } from "@wallet/db";
-import { getWalletBalance } from "@/dal/dashboard"; // Your auth helper to get logged-in user
+import { db } from "@wallet/db"
+import { getServerSession } from "next-auth"
+import { authOptions } from "@wallet/auth" // Adjust based on your auth setup
+import { redirect } from "next/navigation"
 
-interface OnboardMerchantInput {
-  businessName: string;
-  supportEmail?: string;
-}
+export async function handleMerchantOnboarding(formData: FormData) {
+  const session = await getServerSession(authOptions)
 
-export async function merchantOnboardingAction({
-  businessName,
-  supportEmail,
-}: OnboardMerchantInput) {
-  const userWallet = await getWalletBalance();
-  const userId = userWallet?.id;
-
-  if (!userId) {
-    throw new Error("Unauthorized.");
+  if (!session || !session.user?.id) {
+    throw new Error("Unauthorized")
   }
 
-  if (!businessName.trim()) {
-    throw new Error("Business name is required.");
+  const businessName = formData.get("businessName") as string
+  const supportEmail = formData.get("supportEmail") as string
+
+  if (!businessName) {
+    throw new Error("Business name is required")
   }
 
-  // 1. Check if user already has a merchant profile
+  // Check if profile already exists to prevent duplicate creation
   const existingProfile = await db.merchantProfile.findUnique({
-    where: { userId },
-  });
+    where: { userId: session.user.id },
+  })
 
   if (existingProfile) {
-    throw new Error("You already have a merchant profile.");
+    redirect("/dashboard")
   }
 
-  // 2. Create Merchant Profile + Dedicated Merchant Wallet in DB
-  await db.$transaction(async (tx) => {
-    const merchant = await tx.merchantProfile.create({
-      data: {
-        userId: userId,
-        businessName: businessName.trim(),
-        supportEmail: supportEmail?.trim() || null,
+  // Create MerchantProfile and its dedicated business Wallet in a single transaction
+  await db.merchantProfile.create({
+    data: {
+      userId: session.user.id,
+      businessName,
+      supportEmail: supportEmail || session.user.email,
+      Wallet: {
+        create: {
+          balance: 0,
+          currency: "INR",
+        },
       },
-    });
+    },
+  })
 
-    await tx.wallet.create({
-      data: {
-        merchantId: merchant.id,
-        balance: BigInt(0),
-        currency: "INR",
-      },
-    });
-  });
-
-  // 3. Set app mode cookie and redirect to merchant dashboard
-  (await cookies()).set("app_mode", "merchant", { path: "/" });
-  redirect(`${process.env.NEXT_PUBLIC_MERCHANT_APP_URL}/dashboard`);
+  redirect("/dashboard")
 }

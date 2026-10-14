@@ -2,8 +2,8 @@
 "use client";
 
 import { signOut, useSession } from "next-auth/react";
-import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@wallet/ui/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@wallet/ui/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,7 +12,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+} from "@wallet/ui/components/ui/dropdown-menu";
 import { Building2, User, LogOut } from "lucide-react";
 
 interface HeaderProps {

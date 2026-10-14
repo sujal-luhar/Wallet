@@ -1,9 +1,9 @@
 import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { authOptions } from "@wallet/auth";
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@wallet/ui/components/ui/card";
+import { Button } from "@wallet/ui/components/ui/button";
+import { Input } from "@wallet/ui/components/ui/input";
 import { ArrowUpRight, ArrowDownLeft, Wallet, Send, Clock } from "lucide-react";
 import getDashboardData from "@/dal/dashboard";
 import Link from "next/link";
@@ -114,7 +114,7 @@ export default async function DashboardPage() {
         </CardHeader>
         <CardContent>
           <div className="divide-y divide-border/50">
-            {recentTransactions.map((tx) => (
+            {recentTransactions.map((tx: (typeof recentTransactions)[number]) => (
               <div key={tx.id} className="flex items-center justify-between py-3.5 first:pt-0 last:pb-0">
                 <div className="flex items-center gap-3">
                   <div className="p-2 rounded-full bg-muted">

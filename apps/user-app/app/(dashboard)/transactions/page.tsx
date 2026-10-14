@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { getPaginatedTransactions } from "@/dal/transactions";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@wallet/ui/components/ui/card";
+import { Button } from "@wallet/ui/components/ui/button";
 import { ArrowDownLeft, ArrowUpRight, Clock, ChevronLeft, ChevronRight } from "lucide-react";
 import { PageSizeSelect } from "@/components/page-size-select";
 

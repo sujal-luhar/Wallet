@@ -3,9 +3,9 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { updatePhoneNumber } from "@/app/actions/user";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import { Button } from "@wallet/ui/components/ui/button";
+import { Input } from "@wallet/ui/components/ui/input";
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@wallet/ui/components/ui/card";
 
 export default function OnboardingPage() {
   const [phone, setPhone] = useState("");

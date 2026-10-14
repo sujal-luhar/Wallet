@@ -26,13 +26,13 @@ export async function initiateWithdrawalAction({ amount, idempotencyKey }: Withd
   });
 
   if (existingTx) {
-    if (existingTx.status === "PENDING") {
+    if (existingTx.status === "PENDING" || existingTx.status === "PROCESSING") {
       return { id: existingTx.id };
     }
     throw new Error("This transaction has already concluded.");
   }
 
-  // 3. Atomic Database Operation: Check balance + Deduct funds + Log PENDING Tx
+  // 3. Atomic Database Operation: Check balance + Deduct balance + Increment locked + Log PENDING Tx
   const transaction = await db.$transaction(async (tx) => {
     // Lock wallet row & check balance
     const currentWallet = await tx.wallet.findUnique({
@@ -44,11 +44,12 @@ export async function initiateWithdrawalAction({ amount, idempotencyKey }: Withd
       throw new Error("Insufficient wallet balance.");
     }
 
-    // Deduct balance immediately
+    // Deduct from balance and move to locked balance
     await tx.wallet.update({
       where: { id: wallet.id },
       data: {
         balance: { decrement: amountInPaise },
+        locked: { increment: amountInPaise }, // ◄── Added to track pending withdrawal safely
       },
     });
 
@@ -81,7 +82,6 @@ export async function initiateWithdrawalAction({ amount, idempotencyKey }: Withd
     });
   } catch (err) {
     console.error("Failed to notify mock bank:", err);
-    // Note: The transaction remains PENDING and can be picked up by a cron/reconciliation job
   }
 
   return { id: transaction.id };

@@ -3,7 +3,7 @@
 import { useEffect, useState, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Loader2, CheckCircle2, XCircle } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Button } from "@wallet/ui/components/ui/button";
 
 function PaymentStatusContent() {
   const searchParams = useSearchParams();

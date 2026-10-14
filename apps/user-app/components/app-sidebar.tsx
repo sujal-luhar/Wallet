@@ -10,7 +10,7 @@ import {
   History, 
   Wallet 
 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn } from "@wallet/ui/lib/utils";
 
 const navigation = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
@@ -26,7 +26,7 @@ export function Sidebar() {
     <aside className="flex h-screen w-64 flex-col border-r bg-card px-4 py-6">
       {/* Brand Header */}
       <div className="flex items-center gap-3 px-3 pb-6">
-        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-primary-foreground">
+        <div className="flex h-10 w-10 items-center justify-center rounded-none bg-primary text-primary-foreground">
           <Wallet className="h-6 w-6" />
         </div>
         <span className="text-xl font-bold tracking-tight">Wallet</span>

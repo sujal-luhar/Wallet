@@ -90,13 +90,21 @@ app.post('/mock-bank/payout', async (req, res) => {
       const isSuccessful = Math.random() < 0.9;
 
       if (isSuccessful) {
-        await db.transaction.update({
-          where: { id: txId },
-          data: { status: "SUCCESS" },
+        // SUCCESS: Clear from locked balance permanently
+        await db.$transaction(async (tx) => {
+          const transaction = await tx.transaction.update({
+            where: { id: txId },
+            data: { status: "SUCCESS" },
+          });
+
+          await tx.wallet.update({
+            where: { id: transaction.sourceWalletId! },
+            data: { locked: { decrement: transaction.amount } },
+          });
         });
-        console.log(`[MockBank] Payout ${txId} of ₹${amount / 100} SUCCESSFUL`);
+        console.log(`[MockBank] Payout ${txId} of ₹${amount / 100} SUCCESSFUL. Cleared from locked.`);
       } else {
-        
+        // FAILED: Refund back to available balance and remove from locked
         await db.$transaction(async (tx) => {
           const transaction = await tx.transaction.update({
             where: { id: txId },
@@ -105,10 +113,13 @@ app.post('/mock-bank/payout', async (req, res) => {
 
           await tx.wallet.update({
             where: { id: transaction.sourceWalletId! },
-            data: { balance: { increment: transaction.amount } },
+            data: {
+              balance: { increment: transaction.amount },
+              locked: { decrement: transaction.amount },
+            },
           });
         });
-        console.log(`[MockBank] Payout ${txId} FAILED. Reverted balance to wallet.`);
+        console.log(`[MockBank] Payout ${txId} FAILED. Reverted balance to wallet and cleared locked.`);
       }
     } catch (err) {
       console.error(`[MockBank] Error processing payout ${txId}:`, err);

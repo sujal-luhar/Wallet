@@ -1,5 +1,5 @@
 import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { authOptions } from "@wallet/auth";
 import { redirect } from "next/navigation";
 import { Sidebar } from "@/components/app-sidebar"
 import { Header } from "@/components/header";
@@ -9,7 +9,7 @@ export default async function DashboardLayout({ children, }: { children: React.R
   const session = await getServerSession(authOptions);
 
   if (!session?.user) {
-    redirect("/signin");
+    redirect("/signin"); 
   }
 
   // Redirect Google users without a phone number to onboarding
@@ -18,11 +18,13 @@ export default async function DashboardLayout({ children, }: { children: React.R
   }
 
 
-  return (<div className="flex h-screen overflow-hidden bg-background">
+  return (
+    <div className="flex h-screen overflow-hidden bg-background">
       <Sidebar />
       <div className="flex flex-1 flex-col overflow-hidden">
-        <Header currentApp="user"/>
+        <Header currentApp="user" />
         <main className="flex-1 overflow-y-auto p-6">{children}</main>
       </div>
-    </div>)
+    </div>
+  )
 }

@@ -1,5 +1,5 @@
 import { Wallet } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@wallet/ui/components/ui/card";
 
 interface BalanceCardProps {
   formattedBalance: string;

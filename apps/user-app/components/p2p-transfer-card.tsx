@@ -2,11 +2,14 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Send, CheckCircle2, Plus, Loader2, AlertCircle, Wallet } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Send, CheckCircle2, Plus, Loader2, AlertCircle, Wallet, User, Building2 } from "lucide-react";
+import { Button } from "@wallet/ui/components/ui/button";
+import { Input } from "@wallet/ui/components/ui/input";
+import { Label } from "@wallet/ui/components/ui/label";
+import { Tabs, TabsList, TabsTrigger } from "@wallet/ui/components/ui/tabs";
 import { initP2PTransferAction } from "@/app/actions/initP2PTransferAction";
+import { initMerchantPaymentAction } from "@/app/actions/initMerchantPaymentAction";
+// Optional: import { initMerchantPaymentAction } from "@/app/actions/initMerchantPaymentAction";
 
 type RecentPayee = {
   id: string;
@@ -16,12 +19,14 @@ type RecentPayee = {
 
 interface P2PTransferCardProps {
   recentPayees: RecentPayee[];
-  balance: number; // 👈 Pass balance in Rupees (e.g. 1500)
+  balance: number;
 }
 
 export default function P2PTransferCard({ recentPayees = [], balance = 0 }: P2PTransferCardProps) {
   const router = useRouter();
+  const [transferType, setTransferType] = useState<"p2p" | "merchant">("p2p");
   const [recipientPhone, setRecipientPhone] = useState("");
+  const [merchantId, setMerchantId] = useState("");
   const [selectedContactId, setSelectedContactId] = useState<string | null>(null);
   const [amount, setAmount] = useState<number>(500);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -51,15 +56,23 @@ export default function P2PTransferCard({ recentPayees = [], balance = 0 }: P2PT
     setIsSubmitting(true);
 
     try {
-      const idempotencyKey = `p2p_${crypto.randomUUID()}`;
-      const res = await initP2PTransferAction({
-        recipientPhone,
-        amount,
-        idempotencyKey,
-      });
+      const idempotencyKey = `tx_${crypto.randomUUID()}`;
 
-      // P2P settles immediately in DB -> redirect straight to payment success page
-      router.push(`/payment-success?txId=${res.id}`);
+      if (transferType === "p2p") {
+        const res = await initP2PTransferAction({
+          recipientPhone,
+          amount,
+          idempotencyKey,
+        });
+        router.push(`/payment-success?txId=${res.id}`);
+      } else {
+        const res = await initMerchantPaymentAction({
+          merchantId,
+          amount,
+          idempotencyKey,
+        });
+        router.push(`/payment-success?txId=${res.id}`);
+      }
     } catch (err: unknown) {
       if (err instanceof Error) {
         setError(err.message || "Failed to process transfer.");
@@ -73,12 +86,35 @@ export default function P2PTransferCard({ recentPayees = [], balance = 0 }: P2PT
 
   return (
     <div className="w-full max-w-md mx-auto border bg-card p-6 space-y-6 rounded-none shadow-sm">
+      {/* Title & Description */}
       <div className="space-y-1">
-        <h2 className="text-xl font-bold tracking-tight">P2P Transfer</h2>
+        <h2 className="text-xl font-bold tracking-tight">Send Money</h2>
         <p className="text-xs text-muted-foreground">
-          Send money instantly to any wallet using their phone number.
+          Transfer funds instantly to friends or registered businesses.
         </p>
       </div>
+
+      {/* Production Grade Line Tabs Placement */}
+      <Tabs
+        defaultValue="p2p"
+        value={transferType}
+        onValueChange={(val) => {
+          setTransferType(val as "p2p" | "merchant");
+          setError(null);
+        }}
+        className="w-full"
+      >
+        <TabsList variant="line" className="w-full grid grid-cols-2">
+          <TabsTrigger value="p2p" className="gap-2 text-xs">
+            <User className="w-3.5 h-3.5" />
+            Personal (P2P)
+          </TabsTrigger>
+          <TabsTrigger value="merchant" className="gap-2 text-xs">
+            <Building2 className="w-3.5 h-3.5" />
+            Merchant / Business
+          </TabsTrigger>
+        </TabsList>
+      </Tabs>
 
       {error && (
         <div className="p-3 bg-rose-500/10 border border-rose-500/20 text-rose-600 dark:text-rose-400 text-xs flex items-center gap-2 rounded-none">
@@ -87,42 +123,36 @@ export default function P2PTransferCard({ recentPayees = [], balance = 0 }: P2PT
         </div>
       )}
 
-      {/* Recent Payees Row */}
-      {recentPayees.length > 0 && (
+      {/* Recent Payees Row (Shown for Personal Transfers) */}
+      {transferType === "p2p" && recentPayees.length > 0 && (
         <div className="space-y-2">
           <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
             Recent Payees
           </Label>
           <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-none">
-            {/* New Transfer Tile */}
             <button
               type="button"
               onClick={handleClearContact}
-              className={`flex flex-col items-center justify-center p-2 min-w-[72px] h-20 border rounded-none transition-all ${
-                selectedContactId === null
+              className={`flex flex-col items-center justify-center p-2 min-w-[72px] h-20 border rounded-none transition-all ${selectedContactId === null
                   ? "border-primary bg-primary/5"
                   : "border-border hover:border-muted-foreground/50"
-              }`}
+                }`}
             >
               <div className="w-10 h-10 bg-muted flex items-center justify-center text-foreground font-bold">
                 <Plus className="w-4 h-4" />
               </div>
-              <span className="text-[10px] font-medium mt-1 truncate w-14 text-center">
-                New
-              </span>
+              <span className="text-[10px] font-medium mt-1 truncate w-14 text-center">New</span>
             </button>
 
-            {/* Payee Tiles */}
             {recentPayees.map((payee) => (
               <button
                 key={payee.id}
                 type="button"
                 onClick={() => handleSelectContact(payee)}
-                className={`flex flex-col items-center justify-center p-2 min-w-[72px] h-20 border rounded-none transition-all ${
-                  selectedContactId === payee.id
+                className={`flex flex-col items-center justify-center p-2 min-w-[72px] h-20 border rounded-none transition-all ${selectedContactId === payee.id
                     ? "border-primary bg-primary/5 ring-1 ring-primary"
                     : "border-border hover:border-muted-foreground/50"
-                }`}
+                  }`}
               >
                 <div className="w-10 h-10 bg-primary/10 text-primary font-bold flex items-center justify-center text-sm">
                   {payee.name.charAt(0).toUpperCase()}
@@ -138,29 +168,47 @@ export default function P2PTransferCard({ recentPayees = [], balance = 0 }: P2PT
 
       {/* Form Fields */}
       <form onSubmit={handleSubmit} className="space-y-4">
-        {/* Recipient Phone */}
-        <div className="space-y-2">
-          <Label htmlFor="phone" className="text-xs font-medium">
-            Recipient Phone Number
-          </Label>
-          <div className="relative">
+        {transferType === "p2p" ? (
+          /* Personal Recipient Field */
+          <div className="space-y-2">
+            <Label htmlFor="phone" className="text-xs font-medium">
+              Recipient Phone Number
+            </Label>
+            <div className="relative">
+              <Input
+                id="phone"
+                type="tel"
+                placeholder="Enter 10-digit phone number"
+                value={recipientPhone}
+                onChange={(e) => {
+                  setRecipientPhone(e.target.value);
+                  setSelectedContactId(null);
+                }}
+                className="h-11 rounded-none pr-9 font-mono"
+                required
+              />
+              {recipientPhone.length === 10 && (
+                <CheckCircle2 className="w-4 h-4 text-emerald-600 absolute right-3 top-3.5" />
+              )}
+            </div>
+          </div>
+        ) : (
+          /* Merchant ID Field */
+          <div className="space-y-2">
+            <Label htmlFor="merchant" className="text-xs font-medium">
+              Merchant / Business ID
+            </Label>
             <Input
-              id="phone"
-              type="tel"
-              placeholder="Enter 10-digit phone number"
-              value={recipientPhone}
-              onChange={(e) => {
-                setRecipientPhone(e.target.value);
-                setSelectedContactId(null);
-              }}
-              className="h-11 rounded-none pr-9 font-mono"
+              id="merchant"
+              type="text"
+              placeholder="e.g. m_acme_store or phone"
+              value={merchantId}
+              onChange={(e) => setMerchantId(e.target.value)}
+              className="h-11 rounded-none font-mono"
               required
             />
-            {recipientPhone.length === 10 && (
-              <CheckCircle2 className="w-4 h-4 text-emerald-600 absolute right-3 top-3.5" />
-            )}
           </div>
-        </div>
+        )}
 
         {/* Amount Field with Balance Display */}
         <div className="space-y-2">
@@ -187,7 +235,6 @@ export default function P2PTransferCard({ recentPayees = [], balance = 0 }: P2PT
             required
           />
 
-          {/* Preset Increments */}
           <div className="grid grid-cols-4 gap-2 pt-1">
             {[100, 500, 1000, 2000].map((preset) => (
               <Button
@@ -207,7 +254,12 @@ export default function P2PTransferCard({ recentPayees = [], balance = 0 }: P2PT
         {/* Submit Button */}
         <Button
           type="submit"
-          disabled={isSubmitting || recipientPhone.length < 10 || amount < 1 || amount > balance}
+          disabled={
+            isSubmitting ||
+            (transferType === "p2p" ? recipientPhone.length < 10 : !merchantId) ||
+            amount < 1 ||
+            amount > balance
+          }
           className="w-full h-12 rounded-none font-semibold text-sm gap-2"
         >
           {isSubmitting ? (
@@ -215,7 +267,8 @@ export default function P2PTransferCard({ recentPayees = [], balance = 0 }: P2PT
           ) : (
             <>
               <Send className="w-4 h-4" />
-              Send ₹{amount ? amount.toLocaleString("en-IN") : 0} Now
+              Pay {transferType === "merchant" ? "Business" : "Friend"} ₹
+              {amount ? amount.toLocaleString("en-IN") : 0}
             </>
           )}
         </Button>

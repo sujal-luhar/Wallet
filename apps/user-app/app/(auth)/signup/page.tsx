@@ -3,8 +3,8 @@
 import { useState } from "react";
 import Link from "next/link";
 import { signIn } from "next-auth/react";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
+import { Input } from "@wallet/ui/components/ui/input";
+import { Button } from "@wallet/ui/components/ui/button";
 
 export default function SignupPage() {
   const [name, setName] = useState("");

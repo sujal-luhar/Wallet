@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { ArrowDownLeft, ArrowUpRight } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Button } from "@wallet/ui/components/ui/button";
 import DepositCard from "@/components/deposit-card";
 import WithdrawCard from "@/components/withdraw-card";
 
