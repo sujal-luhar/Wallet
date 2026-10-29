@@ -13,10 +13,11 @@ export default async function TransactionsPage({ searchParams }: PageProps) {
   const page = Number(resolvedParams.page) || 1;
   const limit = Number(resolvedParams.limit) || 10;
 
-  const { transactions, totalCount, totalPages, currentPage } = await getPaginatedMerchantTransactions({
-    page,
-    limit,
-  });
+  const { transactions, totalCount, totalPages, currentPage } =
+    await getPaginatedMerchantTransactions({
+      page,
+      limit,
+    });
 
   return (
     <div className="space-y-6">

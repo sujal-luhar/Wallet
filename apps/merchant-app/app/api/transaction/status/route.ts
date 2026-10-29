@@ -22,7 +22,10 @@ export async function GET(req: Request) {
   });
 
   if (!tx) {
-    return NextResponse.json({ error: "Transaction not found" }, { status: 404 });
+    return NextResponse.json(
+      { error: "Transaction not found" },
+      { status: 404 },
+    );
   }
 
   return NextResponse.json({

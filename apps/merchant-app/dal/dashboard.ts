@@ -51,7 +51,7 @@ export async function getMerchantDashboardData() {
   // Aggregate weekly total sales
   const weeklyTotalCents = weeklyTransactions.reduce(
     (acc, curr) => acc + curr.amount,
-    BigInt(0)
+    BigInt(0),
   );
 
   // Group daily revenue for time-series chart using local date keys
@@ -74,10 +74,13 @@ export async function getMerchantDashboardData() {
       const [y, m, d] = dateStr.split("-").map(Number);
       const localDate = new Date(y, m - 1, d);
       return {
-        date: localDate.toLocaleDateString("en-IN", { month: "short", day: "numeric" }), // e.g. "Oct 13"
+        date: localDate.toLocaleDateString("en-IN", {
+          month: "short",
+          day: "numeric",
+        }), // e.g. "Oct 13"
         revenue: Number(amount) / 100,
       };
-    }
+    },
   );
 
   return {

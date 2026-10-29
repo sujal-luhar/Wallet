@@ -19,7 +19,7 @@ export function PageSizeSelect({ currentLimit }: PageSizeSelectProps) {
 
   const handleLimitChange = (value: string | null) => {
     if (!value) return;
-    
+
     const params = new URLSearchParams(searchParams.toString());
     params.set("limit", value);
     params.set("page", "1"); // Reset to page 1 when page size changes
@@ -28,7 +28,9 @@ export function PageSizeSelect({ currentLimit }: PageSizeSelectProps) {
 
   return (
     <div className="flex items-center gap-2">
-      <span className="text-xs text-muted-foreground whitespace-nowrap">Rows per page:</span>
+      <span className="text-xs text-muted-foreground whitespace-nowrap">
+        Rows per page:
+      </span>
       <Select value={String(currentLimit)} onValueChange={handleLimitChange}>
         <SelectTrigger className="h-8 w-[70px] text-xs">
           <SelectValue placeholder={String(currentLimit)} />

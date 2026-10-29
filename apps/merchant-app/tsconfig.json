@@ -19,7 +19,8 @@
       }
     ],
     "paths": {
-      "@/*": ["./*"]
+      "@/*": ["./*"],
+      "@wallet/db": ["../../packages/db/src/index.ts"],
     }
   },
   "include": [

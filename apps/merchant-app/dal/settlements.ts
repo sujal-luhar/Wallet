@@ -7,7 +7,10 @@ interface PaginationParams {
   limit?: number;
 }
 
-export async function getPaginatedMerchantSettlements({ page = 1, limit = 10 }: PaginationParams) {
+export async function getPaginatedMerchantSettlements({
+  page = 1,
+  limit = 10,
+}: PaginationParams) {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) throw new Error("Unauthorized");
 

@@ -8,7 +8,10 @@ interface WithdrawalInput {
   idempotencyKey: string;
 }
 
-export async function initiateWithdrawalAction({ amount, idempotencyKey }: WithdrawalInput) {
+export async function initiateWithdrawalAction({
+  amount,
+  idempotencyKey,
+}: WithdrawalInput) {
   if (!amount || amount < 100) {
     throw new Error("Minimum withdrawal amount is ₹100.");
   }
@@ -68,7 +71,8 @@ export async function initiateWithdrawalAction({ amount, idempotencyKey }: Withd
   });
 
   // 4. Trigger Server-to-Server Payout Call to Express Mock Bank
-  const bankBaseUrl = process.env.NEXT_PUBLIC_MOCK_BANK_URL || "http://localhost:3001";
+  const bankBaseUrl =
+    process.env.NEXT_PUBLIC_MOCK_BANK_URL || "http://localhost:3001";
 
   try {
     await fetch(`${bankBaseUrl}/mock-bank/payout`, {

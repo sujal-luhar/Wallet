@@ -59,7 +59,10 @@ export async function initP2PTransferAction({
       select: { balance: true },
     });
 
-    if (!currentSenderWallet || currentSenderWallet.balance < BigInt(amountInPaise)) {
+    if (
+      !currentSenderWallet ||
+      currentSenderWallet.balance < BigInt(amountInPaise)
+    ) {
       throw new Error("Insufficient wallet balance.");
     }
 

@@ -4,14 +4,22 @@ import crypto from "crypto";
 import { db } from "@wallet/db";
 import { sendVerificationEmail } from "@/lib/mailer";
 
+interface SignUpRequestBody {
+  email?: string;
+  password?: string;
+  name?: string | null;
+  phone?: string;
+}
+
 export async function POST(req: Request) {
   try {
-    const { email, password, name, phone } = await req.json();
+    const { email, password, name, phone }: SignUpRequestBody =
+      await req.json();
 
     if (!email || !password || !phone) {
       return NextResponse.json(
         { message: "Email, phone number, and password are required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -74,16 +82,17 @@ export async function POST(req: Request) {
 
     return NextResponse.json(
       {
-        message: "User registered successfully. Please check your email to verify your account.",
+        message:
+          "User registered successfully. Please check your email to verify your account.",
         userId: user.id,
       },
-      { status: 201 }
+      { status: 201 },
     );
   } catch (error) {
     console.error("SIGNUP_ERROR:", error);
     return NextResponse.json(
       { message: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

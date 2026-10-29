@@ -11,7 +11,9 @@ interface PageProps {
 }
 
 // Separate database verification logic from JSX rendering
-async function verifyToken(token: string): Promise<{ isVerified: boolean; errorCode?: string }> {
+async function verifyToken(
+  token: string,
+): Promise<{ isVerified: boolean; errorCode?: string }> {
   try {
     const existingToken = await db.verificationToken.findUnique({
       where: { token },
@@ -68,7 +70,8 @@ function SuccessCard() {
   return (
     <Card title="Email Verified!" status="success">
       <p className="text-gray-600 mb-6">
-        Your email address has been successfully verified. You can now log in to your account.
+        Your email address has been successfully verified. You can now log in to
+        your account.
       </p>
       <Link
         href="/signin"
@@ -85,7 +88,8 @@ function ErrorCard({ error }: { error: string }) {
     MissingToken: "No verification token was provided in the request.",
     InvalidToken: "This verification link is invalid or has already been used.",
     TokenExpired: "This verification link has expired. Please sign up again.",
-    ServerError: "An internal server error occurred while verifying your email.",
+    ServerError:
+      "An internal server error occurred while verifying your email.",
   };
 
   return (

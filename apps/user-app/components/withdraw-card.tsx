@@ -25,10 +25,10 @@ export default function WithdrawCard({ balance }: WithdrawCardProps) {
   const [amount, setAmount] = useState<number>(1000);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-  const router = useRouter()
+  const router = useRouter();
 
   // Available Balance (typically passed as a prop or fetched via SWR/RSC)
-  const availableBalance = balance
+  const availableBalance = balance;
 
   // Safe Idempotency Key generator
   const generateKey = () =>
@@ -49,8 +49,7 @@ export default function WithdrawCard({ balance }: WithdrawCardProps) {
   // ₹500 Stepper handlers
   const handleIncrement = () =>
     setAmount((prev) => Math.min(availableBalance, prev + 500));
-  const handleDecrement = () =>
-    setAmount((prev) => Math.max(100, prev - 500));
+  const handleDecrement = () => setAmount((prev) => Math.max(100, prev - 500));
 
   // Cancel Handler
   const handleCancel = () => {
@@ -86,10 +85,11 @@ export default function WithdrawCard({ balance }: WithdrawCardProps) {
 
       // Redirect straight to polling page (reuse the same /payment-success polling UI!)
       router.push(`/payment-success?txId=${res.id}`);
-
     } catch (err) {
       console.error("Withdrawal Error:", err);
-      setError("Network timeout. You can safely retry without duplicating requests.");
+      setError(
+        "Network timeout. You can safely retry without duplicating requests.",
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -100,7 +100,9 @@ export default function WithdrawCard({ balance }: WithdrawCardProps) {
       {/* Header */}
       <div className="mb-6 flex items-center justify-between border-b pb-4">
         <div>
-          <h3 className="text-lg font-semibold tracking-tight">Withdraw Funds</h3>
+          <h3 className="text-lg font-semibold tracking-tight">
+            Withdraw Funds
+          </h3>
           <p className="text-xs text-muted-foreground">
             Transfer funds to your verified bank account
           </p>
@@ -185,10 +187,11 @@ export default function WithdrawCard({ balance }: WithdrawCardProps) {
                 type="button"
                 onClick={() => setAmount(preset.value)}
                 disabled={isSubmitting || !!error}
-                className={`rounded-none px-2.5 py-1 text-xs font-medium transition-colors border ${amount === preset.value
+                className={`rounded-none px-2.5 py-1 text-xs font-medium transition-colors border ${
+                  amount === preset.value
                     ? "bg-primary text-primary-foreground border-primary"
                     : "bg-background hover:bg-muted text-muted-foreground border-input"
-                  }`}
+                }`}
               >
                 {preset.label} (₹{preset.value.toLocaleString("en-IN")})
               </button>

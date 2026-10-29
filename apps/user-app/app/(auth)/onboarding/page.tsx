@@ -5,7 +5,13 @@ import { useRouter } from "next/navigation";
 import { updatePhoneNumber } from "@/app/actions/user";
 import { Button } from "@wallet/ui/components/ui/button";
 import { Input } from "@wallet/ui/components/ui/input";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@wallet/ui/components/ui/card";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+} from "@wallet/ui/components/ui/card";
 
 export default function OnboardingPage() {
   const [phone, setPhone] = useState("");
@@ -18,7 +24,7 @@ export default function OnboardingPage() {
     setLoading(true);
     setError("");
 
-    const res = await updatePhoneNumber('+91' + phone);
+    const res = await updatePhoneNumber("+91" + phone);
 
     if (!res.success) {
       setError(res.error || "Failed to update phone number");

@@ -5,9 +5,14 @@ import { redirect } from "next/navigation";
 import { Sidebar } from "@/components/app-sidebar";
 import { Header } from "@/components/header";
 
-const USER_APP_URL = process.env.NEXT_PUBLIC_USER_APP_URL || "http://localhost:3002";
+const USER_APP_URL =
+  process.env.NEXT_PUBLIC_USER_APP_URL || "http://localhost:3002";
 
-export default async function MerchantDashboardLayout({ children }: { children: React.ReactNode }) {
+export default async function MerchantDashboardLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) redirect(`${USER_APP_URL}/signin`);
 
@@ -27,5 +32,5 @@ export default async function MerchantDashboardLayout({ children }: { children: 
         <main className="flex-1 overflow-y-auto p-6">{children}</main>
       </div>
     </div>
-  )
+  );
 }

@@ -5,10 +5,10 @@ import { db } from "@wallet/db";
 
 interface MerchantPaymentInput {
   merchantId: string; // Business/Merchant Identifier or phone
-  amount: number;     // Amount in Rupees
+  amount: number; // Amount in Rupees
   idempotencyKey: string;
 }
-
+  
 export async function initMerchantPaymentAction({
   merchantId,
   amount,
@@ -19,7 +19,7 @@ export async function initMerchantPaymentAction({
     throw new Error("Minimum payment amount is ₹1.");
   }
 
-  const amountInPaise = amount * 100;
+  const amountInPaise = BigInt(amount * 100);
   const senderWallet = await getWalletBalance();
 
   if (!senderWallet?.id) {
@@ -39,10 +39,7 @@ export async function initMerchantPaymentAction({
   // Search MerchantProfile by ID, or by the User's phone linked to the profile
   const merchantProfile = await db.merchantProfile.findFirst({
     where: {
-      OR: [
-        { id: merchantId },
-        { user: { phone: merchantId } },
-      ],
+      OR: [{ id: merchantId }, { user: { phone: merchantId } }],
     },
     include: { Wallet: true },
   });
@@ -54,18 +51,23 @@ export async function initMerchantPaymentAction({
   const destinationWallet = merchantProfile.Wallet;
 
   if (destinationWallet.id === senderWallet.id) {
-    throw new Error("You cannot pay your own merchant wallet from your user wallet.");
+    throw new Error(
+      "You cannot pay your own merchant wallet from your user wallet.",
+    );
   }
 
   // 4. Atomic Prisma Transaction
-  const transaction = await db.$transaction(async (tx) => {
+  const transaction = await db.$transaction(async (tx): Promise<{id: string}> => {
     // Lock & verify sender balance
     const currentSenderWallet = await tx.wallet.findUnique({
       where: { id: senderWallet.id },
       select: { balance: true },
     });
 
-    if (!currentSenderWallet || currentSenderWallet.balance < BigInt(amountInPaise)) {
+    if (
+      !currentSenderWallet ||
+      currentSenderWallet.balance < amountInPaise
+    ) {
       throw new Error("Insufficient wallet balance.");
     }
 

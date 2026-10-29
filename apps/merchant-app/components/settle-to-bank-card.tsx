@@ -2,7 +2,12 @@
 
 import { useState, useTransition, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Card, CardContent, CardHeader, CardTitle } from "@wallet/ui/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@wallet/ui/components/ui/card";
 import { Button } from "@wallet/ui/components/ui/button";
 import { Input } from "@wallet/ui/components/ui/input";
 import { ArrowUpRight, Loader2, CheckCircle2, XCircle } from "lucide-react";
@@ -17,10 +22,12 @@ export function SettleToBankCard({ availableBalance }: SettleToBankCardProps) {
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [amount, setAmount] = useState("");
-  
+
   // Polling state variables
   const [activeTxId, setActiveTxId] = useState<string | null>(null);
-  const [txStatus, setTxStatus] = useState<"IDLE" | "PROCESSING" | "SUCCESS" | "FAILED">("IDLE");
+  const [txStatus, setTxStatus] = useState<
+    "IDLE" | "PROCESSING" | "SUCCESS" | "FAILED"
+  >("IDLE");
 
   // Polling effect matching user-app pattern
   useEffect(() => {
@@ -107,7 +114,9 @@ export function SettleToBankCard({ availableBalance }: SettleToBankCardProps) {
             )}
 
             <div className="space-y-2">
-              <label className="text-sm font-medium">Settlement Amount (₹)</label>
+              <label className="text-sm font-medium">
+                Settlement Amount (₹)
+              </label>
               <Input
                 name="amount"
                 type="number"
@@ -145,7 +154,9 @@ export function SettleToBankCard({ availableBalance }: SettleToBankCardProps) {
           <div className="py-8 text-center space-y-3">
             <Loader2 className="w-8 h-8 text-primary animate-spin mx-auto" />
             <p className="text-sm font-medium">Processing bank settlement...</p>
-            <p className="text-xs text-muted-foreground">Checking status with mock bank gateway.</p>
+            <p className="text-xs text-muted-foreground">
+              Checking status with mock bank gateway.
+            </p>
           </div>
         )}
 
@@ -155,7 +166,9 @@ export function SettleToBankCard({ availableBalance }: SettleToBankCardProps) {
             <CheckCircle2 className="w-12 h-12 text-emerald-500 mx-auto" />
             <div>
               <h3 className="font-bold text-base">Payout Successful!</h3>
-              <p className="text-xs text-muted-foreground">Funds have cleared your locked balance.</p>
+              <p className="text-xs text-muted-foreground">
+                Funds have cleared your locked balance.
+              </p>
             </div>
             <Button onClick={handleReset} variant="outline" className="w-full">
               New Settlement
@@ -169,7 +182,9 @@ export function SettleToBankCard({ availableBalance }: SettleToBankCardProps) {
             <XCircle className="w-12 h-12 text-destructive mx-auto" />
             <div>
               <h3 className="font-bold text-base">Payout Failed</h3>
-              <p className="text-xs text-muted-foreground">Bank declined transaction. Funds refunded to balance.</p>
+              <p className="text-xs text-muted-foreground">
+                Bank declined transaction. Funds refunded to balance.
+              </p>
             </div>
             <Button onClick={handleReset} variant="outline" className="w-full">
               Try Again

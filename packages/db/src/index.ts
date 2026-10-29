@@ -5,7 +5,7 @@ const url = process.env.DATABASE_URL;
 
 if (!url) {
   throw new Error(
-    "DATABASE_URL is missing! Please make sure DATABASE_URL is defined in apps/user-app/.env"
+    "DATABASE_URL is missing! Please make sure DATABASE_URL is defined in apps/user-app/.env",
   );
 }
 
@@ -21,21 +21,8 @@ const globalForPrisma = globalThis as unknown as {
   prismaGlobal: ExtendedPrismaClient | undefined;
 };
 
-export const db = (
-  globalForPrisma.prismaGlobal ?? prismaClientSingleton()
-) as unknown as PrismaClient;
-
-// export const db = globalForPrisma.prismaGlobal ?? prismaClientSingleton();
-
-// // declare global {
-// //   var prismaGlobal: undefined | ReturnType<typeof prismaClientSingleton>;
-// // }
-
-// // export const db =
-// //   (globalThis.prismaGlobal ?? prismaClientSingleton()) as ReturnType<
-// //     typeof prismaClientSingleton
-// //   >;
-
+export const db = (globalForPrisma.prismaGlobal ??
+  prismaClientSingleton()) as unknown as PrismaClient;
 
 if (process.env.NODE_ENV !== "production") {
   globalForPrisma.prismaGlobal = db as unknown as ExtendedPrismaClient;

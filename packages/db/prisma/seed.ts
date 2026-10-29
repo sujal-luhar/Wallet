@@ -121,7 +121,9 @@ async function main() {
       },
     });
 
-    console.log("💸 Created 3 sample transactions (Deposit, P2P, Merchant Payment).");
+    console.log(
+      "💸 Created 3 sample transactions (Deposit, P2P, Merchant Payment).",
+    );
   }
 
   console.log("✅ Seeding completed successfully!");

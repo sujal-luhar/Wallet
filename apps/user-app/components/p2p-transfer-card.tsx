@@ -2,7 +2,16 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Send, CheckCircle2, Plus, Loader2, AlertCircle, Wallet, User, Building2 } from "lucide-react";
+import {
+  Send,
+  CheckCircle2,
+  Plus,
+  Loader2,
+  AlertCircle,
+  Wallet,
+  User,
+  Building2,
+} from "lucide-react";
 import { Button } from "@wallet/ui/components/ui/button";
 import { Input } from "@wallet/ui/components/ui/input";
 import { Label } from "@wallet/ui/components/ui/label";
@@ -22,12 +31,17 @@ interface P2PTransferCardProps {
   balance: number;
 }
 
-export default function P2PTransferCard({ recentPayees = [], balance = 0 }: P2PTransferCardProps) {
+export default function P2PTransferCard({
+  recentPayees = [],
+  balance = 0,
+}: P2PTransferCardProps) {
   const router = useRouter();
   const [transferType, setTransferType] = useState<"p2p" | "merchant">("p2p");
   const [recipientPhone, setRecipientPhone] = useState("");
   const [merchantId, setMerchantId] = useState("");
-  const [selectedContactId, setSelectedContactId] = useState<string | null>(null);
+  const [selectedContactId, setSelectedContactId] = useState<string | null>(
+    null,
+  );
   const [amount, setAmount] = useState<number>(500);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -133,15 +147,18 @@ export default function P2PTransferCard({ recentPayees = [], balance = 0 }: P2PT
             <button
               type="button"
               onClick={handleClearContact}
-              className={`flex flex-col items-center justify-center p-2 min-w-[72px] h-20 border rounded-none transition-all ${selectedContactId === null
+              className={`flex flex-col items-center justify-center p-2 min-w-[72px] h-20 border rounded-none transition-all ${
+                selectedContactId === null
                   ? "border-primary bg-primary/5"
                   : "border-border hover:border-muted-foreground/50"
-                }`}
+              }`}
             >
               <div className="w-10 h-10 bg-muted flex items-center justify-center text-foreground font-bold">
                 <Plus className="w-4 h-4" />
               </div>
-              <span className="text-[10px] font-medium mt-1 truncate w-14 text-center">New</span>
+              <span className="text-[10px] font-medium mt-1 truncate w-14 text-center">
+                New
+              </span>
             </button>
 
             {recentPayees.map((payee) => (
@@ -149,10 +166,11 @@ export default function P2PTransferCard({ recentPayees = [], balance = 0 }: P2PT
                 key={payee.id}
                 type="button"
                 onClick={() => handleSelectContact(payee)}
-                className={`flex flex-col items-center justify-center p-2 min-w-[72px] h-20 border rounded-none transition-all ${selectedContactId === payee.id
+                className={`flex flex-col items-center justify-center p-2 min-w-[72px] h-20 border rounded-none transition-all ${
+                  selectedContactId === payee.id
                     ? "border-primary bg-primary/5 ring-1 ring-primary"
                     : "border-border hover:border-muted-foreground/50"
-                  }`}
+                }`}
               >
                 <div className="w-10 h-10 bg-primary/10 text-primary font-bold flex items-center justify-center text-sm">
                   {payee.name.charAt(0).toUpperCase()}
@@ -220,7 +238,11 @@ export default function P2PTransferCard({ recentPayees = [], balance = 0 }: P2PT
               <Wallet className="w-3 h-3" />
               Available:{" "}
               <span className="font-bold text-foreground">
-                ₹{balance.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                ₹
+                {balance.toLocaleString("en-IN", {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })}
               </span>
             </span>
           </div>
@@ -256,7 +278,9 @@ export default function P2PTransferCard({ recentPayees = [], balance = 0 }: P2PT
           type="submit"
           disabled={
             isSubmitting ||
-            (transferType === "p2p" ? recipientPhone.length < 10 : !merchantId) ||
+            (transferType === "p2p"
+              ? recipientPhone.length < 10
+              : !merchantId) ||
             amount < 1 ||
             amount > balance
           }

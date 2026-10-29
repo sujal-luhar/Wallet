@@ -1,7 +1,13 @@
-import { Button } from "@wallet/ui/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@wallet/ui/components/ui/card"
-import { Input } from "@wallet/ui/components/ui/input"
-import { handleMerchantOnboarding } from "../../actions/merchantOnboardingAction"
+import { Button } from "@wallet/ui/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@wallet/ui/components/ui/card";
+import { Input } from "@wallet/ui/components/ui/input";
+import { handleMerchantOnboarding } from "../../actions/merchantOnboardingAction";
 
 export default function MerchantOnboardingPage() {
   return (
@@ -10,7 +16,8 @@ export default function MerchantOnboardingPage() {
         <CardHeader>
           <CardTitle>Welcome, Merchant!</CardTitle>
           <CardDescription>
-            Set up your business profile to start accepting payments and settlements.
+            Set up your business profile to start accepting payments and
+            settlements.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -46,5 +53,5 @@ export default function MerchantOnboardingPage() {
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }

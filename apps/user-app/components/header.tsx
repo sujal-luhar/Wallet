@@ -3,7 +3,11 @@
 
 import { signOut, useSession } from "next-auth/react";
 import { Button } from "@wallet/ui/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@wallet/ui/components/ui/avatar";
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "@wallet/ui/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -22,8 +26,10 @@ interface HeaderProps {
 export function Header({ currentApp = "user" }: HeaderProps) {
   const { data: session } = useSession();
 
-  const userAppUrl = process.env.NEXT_PUBLIC_USER_APP_URL || "http://localhost:3002";
-  const merchantAppUrl = process.env.NEXT_PUBLIC_MERCHANT_APP_URL || "http://localhost:3003";
+  const userAppUrl =
+    process.env.NEXT_PUBLIC_USER_APP_URL || "http://localhost:3002";
+  const merchantAppUrl =
+    process.env.NEXT_PUBLIC_MERCHANT_APP_URL || "http://localhost:3003";
 
   const handleSwitchApp = () => {
     if (currentApp === "user") {
@@ -79,8 +85,12 @@ export function Header({ currentApp = "user" }: HeaderProps) {
             <DropdownMenuGroup>
               <DropdownMenuLabel>
                 <div className="flex flex-col space-y-1">
-                  <p className="text-sm font-medium text-foreground">{session?.user?.name}</p>
-                  <p className="text-xs text-muted-foreground">{session?.user?.email}</p>
+                  <p className="text-sm font-medium text-foreground">
+                    {session?.user?.name}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {session?.user?.email}
+                  </p>
                 </div>
               </DropdownMenuLabel>
             </DropdownMenuGroup>

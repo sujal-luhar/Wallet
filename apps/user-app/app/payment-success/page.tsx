@@ -10,8 +10,10 @@ function PaymentStatusContent() {
   const router = useRouter();
   const txId = searchParams.get("txId");
 
-  const [status, setStatus] = useState<"PENDING" | "SUCCESS" | "FAILED">("PENDING");
-  const [txType,setTxType] = useState<"DEPOSIT" | "WITHDRAWAL" | null>(null);
+  const [status, setStatus] = useState<"PENDING" | "SUCCESS" | "FAILED">(
+    "PENDING",
+  );
+  const [txType, setTxType] = useState<"DEPOSIT" | "WITHDRAWAL" | null>(null);
   const [amount, setAmount] = useState<number | null>(null);
 
   // Helper for dynamic success title
@@ -35,7 +37,7 @@ function PaymentStatusContent() {
 
         if (isMounted) {
           setStatus(data.status);
-          setTxType(data.type)
+          setTxType(data.type);
           if (data.amount) setAmount(data.amount);
         }
 
@@ -61,7 +63,6 @@ function PaymentStatusContent() {
   return (
     <div className="min-h-[70vh] flex items-center justify-center p-4">
       <div className="w-full max-w-sm border rounded-xl bg-card p-6 shadow-sm text-center space-y-6">
-
         {/* State 1: PENDING (Loading) */}
         {status === "PENDING" && (
           <div className="space-y-4 py-4">
@@ -87,7 +88,8 @@ function PaymentStatusContent() {
 
               {amount !== null && (
                 <p className="text-2xl font-extrabold text-emerald-600">
-                  {txType === "WITHDRAWAL" ? "-" : "+"}₹{amount.toLocaleString("en-IN")}
+                  {txType === "WITHDRAWAL" ? "-" : "+"}₹
+                  {amount.toLocaleString("en-IN")}
                 </p>
               )}
               <p className="text-xs text-muted-foreground pt-1">
@@ -109,7 +111,9 @@ function PaymentStatusContent() {
           <div className="space-y-4 py-2 animate-in fade-in zoom-in-95 duration-300">
             <XCircle className="w-16 h-16 text-destructive mx-auto" />
             <div className="space-y-1">
-              <h2 className="text-xl font-bold text-foreground">Payment Failed</h2>
+              <h2 className="text-xl font-bold text-foreground">
+                Payment Failed
+              </h2>
               <p className="text-xs text-muted-foreground">
                 The transaction was declined by the bank or timed out.
               </p>
@@ -131,7 +135,13 @@ function PaymentStatusContent() {
 
 export default function PaymentSuccessPage() {
   return (
-    <Suspense fallback={<div className="flex justify-center p-8"><Loader2 className="animate-spin" /></div>}>
+    <Suspense
+      fallback={
+        <div className="flex justify-center p-8">
+          <Loader2 className="animate-spin" />
+        </div>
+      }
+    >
       <PaymentStatusContent />
     </Suspense>
   );

@@ -71,7 +71,8 @@ export async function handleSettleToBank(formData: FormData) {
   });
 
   // 3. Hit the existing Mock Bank payout route
-  const mockBankUrl = process.env.NEXT_PUBLIC_MOCK_BANK_URL || "http://localhost:3001";
+  const mockBankUrl =
+    process.env.NEXT_PUBLIC_MOCK_BANK_URL || "http://localhost:3001";
 
   fetch(`${mockBankUrl}/mock-bank/payout`, {
     method: "POST",

@@ -4,13 +4,14 @@ import { db } from "@wallet/db";
 // -----------------------------------------------------------------------------
 // 1. Private query helper to automatically derive Prisma's complex type
 // -----------------------------------------------------------------------------
-async function fetchRawTransactions(walletId: string, skip: number, take: number) {
+async function fetchRawTransactions(
+  walletId: string,
+  skip: number,
+  take: number,
+) {
   return db.transaction.findMany({
     where: {
-      OR: [
-        { sourceWalletId: walletId },
-        { destinationWalletId: walletId },
-      ],
+      OR: [{ sourceWalletId: walletId }, { destinationWalletId: walletId }],
     },
     orderBy: { createdAt: "desc" },
     skip,
@@ -27,12 +28,17 @@ async function fetchRawTransactions(walletId: string, skip: number, take: number
 }
 
 // 🎯 AUTOMATIC TYPE INFERENCE: Extracts array item type from fetchRawTransactions
-type RawTransactionItem = Awaited<ReturnType<typeof fetchRawTransactions>>[number];
+type RawTransactionItem = Awaited<
+  ReturnType<typeof fetchRawTransactions>
+>[number];
 
 // -----------------------------------------------------------------------------
 // 2. Formatter Function (Now 100% strictly typed without 'any')
 // -----------------------------------------------------------------------------
-function formatTransactionRecord(tx: RawTransactionItem, currentWalletId: string) {
+function formatTransactionRecord(
+  tx: RawTransactionItem,
+  currentWalletId: string,
+) {
   const isSender = tx.sourceWalletId === currentWalletId;
 
   // Format amount from Paise to Rupees
@@ -84,13 +90,22 @@ interface GetTransactionsParams {
   limit?: number;
 }
 
-export async function getPaginatedTransactions({ page = 1, limit = 10 }: GetTransactionsParams = {}) {
+export async function getPaginatedTransactions({
+  page = 1,
+  limit = 10,
+}: GetTransactionsParams = {}) {
   const wallet = await getWalletBalance();
   const walletId = wallet?.id;
 
   // Guarding walletId guarantees it's a string before querying
   if (!walletId) {
-    return { transactions: [], totalCount: 0, totalPages: 1, currentPage: 1, limit };
+    return {
+      transactions: [],
+      totalCount: 0,
+      totalPages: 1,
+      currentPage: 1,
+      limit,
+    };
   }
 
   const safePage = Math.max(1, page);
@@ -101,15 +116,14 @@ export async function getPaginatedTransactions({ page = 1, limit = 10 }: GetTran
     fetchRawTransactions(walletId, skip, safeLimit),
     db.transaction.count({
       where: {
-        OR: [
-          { sourceWalletId: walletId },
-          { destinationWalletId: walletId },
-        ],
+        OR: [{ sourceWalletId: walletId }, { destinationWalletId: walletId }],
       },
     }),
   ]);
 
-  const transactions = rawTransactions.map((tx) => formatTransactionRecord(tx, walletId));
+  const transactions = rawTransactions.map((tx) =>
+    formatTransactionRecord(tx, walletId),
+  );
   const totalPages = Math.ceil(totalCount / safeLimit) || 1;
 
   return {

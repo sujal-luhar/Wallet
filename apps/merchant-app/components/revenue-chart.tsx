@@ -1,6 +1,13 @@
 "use client";
 
-import { Bar, BarChart, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
+import {
+  Bar,
+  BarChart,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+} from "recharts";
 
 interface RevenueChartProps {
   data: { date: string; revenue: number }[];
@@ -10,7 +17,10 @@ export function RevenueChart({ data }: RevenueChartProps) {
   return (
     <div className="w-full h-[240px]">
       <ResponsiveContainer width="100%" height="100%">
-        <BarChart data={data} margin={{ top: 10, right: 10, bottom: 0, left: -10 }}>
+        <BarChart
+          data={data}
+          margin={{ top: 10, right: 10, bottom: 0, left: -10 }}
+        >
           <XAxis
             dataKey="date"
             tickLine={false}
@@ -37,7 +47,9 @@ export function RevenueChart({ data }: RevenueChartProps) {
                     <div className="flex items-center justify-between gap-4 pt-0.5">
                       <div className="flex items-center gap-1.5">
                         <span className="h-2 w-2 rounded-full bg-primary" />
-                        <span className="text-xs font-medium text-muted-foreground">Revenue</span>
+                        <span className="text-xs font-medium text-muted-foreground">
+                          Revenue
+                        </span>
                       </div>
                       <span className="text-xs font-bold text-foreground font-mono">
                         ₹{Number(dataPoint.value).toLocaleString("en-IN")}

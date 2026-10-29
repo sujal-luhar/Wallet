@@ -13,7 +13,10 @@ export async function updatePhoneNumber(phoneNumber: string) {
 
   // Basic validation (10 digits)
   if (!/^\d{10}$/.test(phoneNumber.slice(3))) {
-    return { success: false, error: "Please enter a valid 10-digit phone number." };
+    return {
+      success: false,
+      error: "Please enter a valid 10-digit phone number.",
+    };
   }
 
   // Check if number is already in use by another account
@@ -22,7 +25,10 @@ export async function updatePhoneNumber(phoneNumber: string) {
   });
 
   if (existingUser) {
-    return { success: false, error: "This phone number is already registered." };
+    return {
+      success: false,
+      error: "This phone number is already registered.",
+    };
   }
 
   // Save phone number

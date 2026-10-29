@@ -101,11 +101,6 @@ model Transaction {
   externalReferenceId String?   @unique // Webhook reference ID from Bank/Stripe
   failureReason       String?   // Reason if status == FAILED (e.g. "Insufficient Balance")
 
-  // Refund Tracking
-  originalTransactionId String?       @unique
-  originalTransaction   Transaction?  @relation("RefundRelation", fields: [originalTransactionId], references: [id])
-  refundTransaction     Transaction?  @relation("RefundRelation")
-
   // Where did the money come from? (Null if depositing from Bank)
   sourceWalletId      String?
   sourceWallet        Wallet?  @relation("SourceWallet", fields: [sourceWalletId], references: [id])
@@ -140,14 +135,6 @@ model Account {
 
   @@unique([provider, providerAccountId])
 }
-
-// model Session {
-//   id           String   @id @default(cuid())
-//   sessionToken String   @unique
-//   userId       String
-//   expires      DateTime
-//   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-// }
 
 model VerificationToken {
   identifier String   @id

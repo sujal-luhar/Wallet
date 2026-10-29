@@ -8,13 +8,11 @@
 //   );
 // }
 
-
-
 import { db } from "@wallet/db";
 
 export default async function Home() {
   const users = await db.user.findMany();
-  
+
   return (
     <div>
       <h1>Total Users: {users.length}</h1>

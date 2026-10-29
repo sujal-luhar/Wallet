@@ -21,7 +21,7 @@ export default function SigninPage() {
     e.preventDefault();
     setLoading(true);
     setError(null);
- 
+
     try {
       const res = await signIn("credentials", {
         email,

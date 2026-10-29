@@ -2,7 +2,13 @@
 
 import { useState, useTransition } from "react";
 import Link from "next/link";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@wallet/ui/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@wallet/ui/components/ui/card";
 import { Input } from "@wallet/ui/components/ui/input";
 import { Button } from "@wallet/ui/components/ui/button";
 import { Search, Loader2, ChevronLeft, ChevronRight } from "lucide-react";
@@ -40,7 +46,7 @@ export default function TransactionsClient({
   const filteredTransactions = initialTransactions.filter(
     (tx) =>
       tx.customer.toLowerCase().includes(search.toLowerCase()) ||
-      tx.shortId.toLowerCase().includes(search.toLowerCase())
+      tx.shortId.toLowerCase().includes(search.toLowerCase()),
   );
 
   const handleRefund = (id: string) => {
@@ -72,9 +78,12 @@ export default function TransactionsClient({
       <Card>
         <CardHeader className="flex flex-row items-center justify-between pb-4">
           <div>
-            <CardTitle className="text-base font-medium">Customer Payments</CardTitle>
+            <CardTitle className="text-base font-medium">
+              Customer Payments
+            </CardTitle>
             <CardDescription className="text-xs mt-0.5">
-              Showing {initialTransactions.length} of {totalCount} total transactions
+              Showing {initialTransactions.length} of {totalCount} total
+              transactions
             </CardDescription>
           </div>
           <div className="relative w-72">
@@ -103,27 +112,40 @@ export default function TransactionsClient({
               <tbody className="divide-y">
                 {filteredTransactions.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="py-8 text-center text-muted-foreground">
+                    <td
+                      colSpan={6}
+                      className="py-8 text-center text-muted-foreground"
+                    >
                       No transactions found on this page.
                     </td>
                   </tr>
                 ) : (
                   filteredTransactions.map((tx) => (
-                    <tr key={tx.id} className="hover:bg-muted/30 transition-colors">
+                    <tr
+                      key={tx.id}
+                      className="hover:bg-muted/30 transition-colors"
+                    >
                       <td className="py-3 px-4 font-medium">{tx.customer}</td>
-                      <td className="py-3 px-4 font-mono text-xs text-muted-foreground">{tx.shortId}</td>
-                      <td className="py-3 px-4 font-semibold text-emerald-600">
-                        +₹{tx.amount.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
+                      <td className="py-3 px-4 font-mono text-xs text-muted-foreground">
+                        {tx.shortId}
                       </td>
-                      <td className="py-3 px-4 text-muted-foreground">{tx.date}</td>
+                      <td className="py-3 px-4 font-semibold text-emerald-600">
+                        +₹
+                        {tx.amount.toLocaleString("en-IN", {
+                          minimumFractionDigits: 2,
+                        })}
+                      </td>
+                      <td className="py-3 px-4 text-muted-foreground">
+                        {tx.date}
+                      </td>
                       <td className="py-3 px-4">
                         <span
                           className={`inline-block px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded-full ${
                             tx.status === "SUCCESS"
                               ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300"
                               : tx.status === "REFUNDED"
-                              ? "bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300"
-                              : "bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300"
+                                ? "bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300"
+                                : "bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300"
                           }`}
                         >
                           {tx.status}
@@ -169,25 +191,47 @@ export default function TransactionsClient({
 
             <div className="flex items-center gap-2">
               {currentPage > 1 ? (
-                <Link href={`/transactions?page=${currentPage - 1}&limit=${limit}`}>
-                  <Button variant="outline" size="sm" className="h-8 w-8 p-0 rounded-none">
+                <Link
+                  href={`/transactions?page=${currentPage - 1}&limit=${limit}`}
+                >
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-8 w-8 p-0 rounded-none"
+                  >
                     <ChevronLeft className="h-4 w-4" />
                   </Button>
                 </Link>
               ) : (
-                <Button variant="outline" size="sm" className="h-8 w-8 p-0 rounded-none" disabled>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-8 w-8 p-0 rounded-none"
+                  disabled
+                >
                   <ChevronLeft className="h-4 w-4" />
                 </Button>
               )}
 
               {currentPage < totalPages ? (
-                <Link href={`/transactions?page=${currentPage + 1}&limit=${limit}`}>
-                  <Button variant="outline" size="sm" className="h-8 w-8 p-0 rounded-none">
+                <Link
+                  href={`/transactions?page=${currentPage + 1}&limit=${limit}`}
+                >
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-8 w-8 p-0 rounded-none"
+                  >
                     <ChevronRight className="h-4 w-4" />
                   </Button>
                 </Link>
               ) : (
-                <Button variant="outline" size="sm" className="h-8 w-8 p-0 rounded-none" disabled>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-8 w-8 p-0 rounded-none"
+                  disabled
+                >
                   <ChevronRight className="h-4 w-4" />
                 </Button>
               )}

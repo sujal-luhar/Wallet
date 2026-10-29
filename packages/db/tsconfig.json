@@ -2,7 +2,7 @@
   "extends": "@wallet/typescript-config/base.json",
   "compilerOptions": {
     "outDir": "./dist",
-    "types": ["node"]
+    "types": ["node"],
   },
   "include": ["src/**/*", "prisma/**/*"],
 }
