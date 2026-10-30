@@ -79,7 +79,7 @@ app.get("/mock-bank/pay", async (req, res) => {
 });
 
 app.post("/mock-bank/payout", async (req, res) => {
-  const { txId, amount, destinationAccount } = req.body;
+  const { txId, amount } = req.body;
 
   if (!txId || !amount) {
     return res.status(400).json({ success: false, error: "Invalid payload" });

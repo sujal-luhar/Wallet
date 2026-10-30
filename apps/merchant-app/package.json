@@ -6,7 +6,7 @@
     "dev": "next dev --port 3003",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "next lint"
   },
   "dependencies": {
     "@wallet/auth": "workspace:*",
@@ -24,9 +24,9 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "eslint": "^9",
+    "eslint": "catalog:",
     "eslint-config-next": "16.2.11",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "typescript": "catalog:"
   }
 }

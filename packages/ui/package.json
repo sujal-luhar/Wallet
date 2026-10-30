@@ -24,6 +24,6 @@
     "@types/react-dom": "19.2.2",
     "@wallet/eslint-config": "workspace:*",
     "@wallet/typescript-config": "workspace:*",
-    "typescript": "5.9.2"
+    "typescript": "catalog:"
   }
 }

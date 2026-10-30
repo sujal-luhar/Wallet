@@ -8,5 +8,11 @@ allowBuilds:
   prisma: true
   sharp: true
   unrs-resolver: true
+catalog:
+  typescript: 5.9.2
+  eslint: ^9.39.1
+  "@eslint/js": ^9.39.1
+  prisma: 7.9.1
+  "@prisma/client": 7.9.1
 
 minimumReleaseAge: 0
