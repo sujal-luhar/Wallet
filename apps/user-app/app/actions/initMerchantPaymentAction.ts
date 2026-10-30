@@ -57,7 +57,7 @@ export async function initMerchantPaymentAction({
   }
 
   // 4. Atomic Prisma Transaction
-  const transaction = await db.$transaction(async (tx): Promise<{id: string}> => {
+  const transaction = await db.$transaction(async (tx) => {
     // Lock & verify sender balance
     const currentSenderWallet = await tx.wallet.findUnique({
       where: { id: senderWallet.id },
