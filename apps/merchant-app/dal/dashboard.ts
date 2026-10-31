@@ -72,7 +72,7 @@ export async function getMerchantDashboardData() {
   const dailyRevenueGraph = Array.from(dailyMap.entries()).map(
     ([dateStr, amount]) => {
       const [y, m, d] = dateStr.split("-").map(Number);
-      const localDate = new Date(y, m - 1, d);
+      const localDate = new Date(y!, m! - 1, d!);
       return {
         date: localDate.toLocaleDateString("en-IN", {
           month: "short",

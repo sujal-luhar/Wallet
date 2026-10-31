@@ -78,6 +78,9 @@ importers:
       '@types/react-dom':
         specifier: ^19
         version: 19.2.2(@types/react@19.2.2)
+      '@wallet/typescript-config':
+        specifier: workspace:*
+        version: link:../../packages/typescript-config
       eslint:
         specifier: 'catalog:'
         version: 9.39.1(jiti@2.7.0)(supports-color@7.2.0)
@@ -203,6 +206,9 @@ importers:
       '@types/react-dom':
         specifier: ^19
         version: 19.2.2(@types/react@19.2.2)
+      '@wallet/typescript-config':
+        specifier: workspace:*
+        version: link:../../packages/typescript-config
       eslint:
         specifier: 'catalog:'
         version: 9.39.1(jiti@2.7.0)(supports-color@7.2.0)

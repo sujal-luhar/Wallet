@@ -9,8 +9,7 @@ import {
   CardTitle,
 } from "@wallet/ui/components/ui/card";
 import { Button } from "@wallet/ui/components/ui/button";
-import { Input } from "@wallet/ui/components/ui/input";
-import { ArrowUpRight, ArrowDownLeft, Wallet, Send, Clock } from "lucide-react";
+import { ArrowUpRight, ArrowDownLeft, Wallet, Clock } from "lucide-react";
 import getDashboardData from "@/dal/dashboard";
 import Link from "next/link";
 
@@ -96,51 +95,6 @@ export default async function DashboardPage() {
             </div>
           </CardContent>
         </Card>
-
-        {/* Quick P2P Send Card */}
-        {/* <Card className="shadow-sm border-border/60">
-          <CardHeader>
-            <CardTitle className="text-lg flex items-center gap-2">
-              <Send className="h-4 w-4 text-primary" />
-              Quick Transfer
-            </CardTitle>
-            <CardDescription>
-              Send funds instantly via phone number
-            </CardDescription>
-          </CardHeader>
-          <CardContent> */}
-
-
-            {/* =========================================================================
-                TODO [YOUR PRACTICE 3]: Form Submission Handler
-                Replace this plain form with a Client Component or attach a Server Action
-                like `action={sendMoneyAction}` to process P2P transfers.
-               ========================================================================= */}
-
-
-            {/* <form className="space-y-4">
-              <div className="space-y-1.5">
-                <label className="text-xs font-medium text-muted-foreground">
-                  Recipient Phone
-                </label>
-                <Input
-                  placeholder="10-digit number"
-                  type="tel"
-                  maxLength={10}
-                />
-              </div>
-              <div className="space-y-1.5">
-                <label className="text-xs font-medium text-muted-foreground">
-                  Amount (₹)
-                </label>
-                <Input placeholder="0.00" type="number" min={1} />
-              </div>
-              <Button type="button" className="w-full font-medium">
-                Send Instantly
-              </Button>
-            </form>
-          </CardContent>
-        </Card> */}
       </div>
 
       {/* Row 2: Recent Activity Ledger */}

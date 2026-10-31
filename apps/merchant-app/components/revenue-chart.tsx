@@ -42,7 +42,7 @@ export function RevenueChart({ data }: RevenueChartProps) {
                 return (
                   <div className="rounded-none border border-border bg-card px-3 py-2 shadow-md space-y-1 min-w-[120px]">
                     <p className="text-[10px] font-semibold tracking-wider text-muted-foreground uppercase">
-                      {dataPoint.payload.date}
+                      {dataPoint?.payload.date}
                     </p>
                     <div className="flex items-center justify-between gap-4 pt-0.5">
                       <div className="flex items-center gap-1.5">
@@ -52,7 +52,7 @@ export function RevenueChart({ data }: RevenueChartProps) {
                         </span>
                       </div>
                       <span className="text-xs font-bold text-foreground font-mono">
-                        ₹{Number(dataPoint.value).toLocaleString("en-IN")}
+                        ₹{Number(dataPoint?.value).toLocaleString("en-IN")}
                       </span>
                     </div>
                   </div>

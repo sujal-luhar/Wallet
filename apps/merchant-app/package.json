@@ -6,7 +6,8 @@
     "dev": "next dev --port 3003",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "eslint",
+    "check-types": "next typegen && tsc --noEmit"
   },
   "dependencies": {
     "@wallet/auth": "workspace:*",
@@ -20,6 +21,7 @@
     "recharts": "^3.8.0"
   },
   "devDependencies": {
+    "@wallet/typescript-config": "workspace:*",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",

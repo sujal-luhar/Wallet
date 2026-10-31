@@ -1,1 +1,0 @@
-// Only use this file if you ever build "a mobile application" or "public API" that needs a REST /me endpoint in the future. Else, this entire `user/me` directory is useless for the website application.
