@@ -5,7 +5,7 @@
   "types": "./src/index.ts",
   "description": "",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "lint": "eslint",
     "check-types": "tsc --noEmit"
   },
   "keywords": [],
@@ -16,7 +16,8 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
-    "@types/node": "^26.1.2",
+    "@wallet/eslint-config": "workspace:*",
+    "@types/node": "catalog:",
     "typescript": "catalog:"
   }
 }

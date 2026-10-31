@@ -1,10 +1,3 @@
-import js from "@eslint/js";
-import { defineConfig } from "eslint/config";
-import tseslint from "typescript-eslint";
+import { config } from "@wallet/eslint-config/base";
 
-const eslintConfig = defineConfig([
-  js.configs.recommended,
-  ...tseslint.configs.recommended,
-]);
-
-export default eslintConfig;
+export default config;
