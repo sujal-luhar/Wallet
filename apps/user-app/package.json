@@ -6,25 +6,21 @@
     "dev": "next dev --port 3002",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint",
+    "lint": "eslint .",
     "check-types": "next typegen && tsc --noEmit"
   },
   "dependencies": {
     "@wallet/auth": "workspace:*",
     "@wallet/db": "workspace:*",
     "@wallet/ui": "workspace:*",
-    "@base-ui/react": "catalog:",
     "@types/bcrypt": "catalog:",
     "bcrypt": "catalog:",
-    "class-variance-authority": "catalog:",
-    "cn": "catalog:",
     "lucide-react": "catalog:",
     "next": "catalog:",
     "next-auth": "catalog:",
     "nodemailer": "^7.0.13",
     "react": "catalog:",
     "react-dom": "catalog:",
-    "shadcn": "^4.21.0",
     "tw-animate-css": "catalog:"
   },
   "devDependencies": {

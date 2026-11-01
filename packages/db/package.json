@@ -13,7 +13,7 @@
     "db:migrate": "prisma migrate dev",
     "db:deploy": "prisma migrate deploy",
     "db:studio": "prisma studio",
-    "lint": "eslint",
+    "lint": "eslint .",
     "check-types": "tsc --noEmit"
   },
   "keywords": [],
@@ -27,6 +27,7 @@
     "@wallet/eslint-config": "workspace:*",
     "prisma": "catalog:",
     "tsx": "catalog:",
+    "eslint": "catalog:",
     "typescript": "catalog:"
   },
   "dependencies": {
