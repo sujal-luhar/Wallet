@@ -8,7 +8,7 @@ interface MerchantPaymentInput {
   amount: number; // Amount in Rupees
   idempotencyKey: string;
 }
-  
+
 export async function initMerchantPaymentAction({
   merchantId,
   amount,
@@ -64,10 +64,7 @@ export async function initMerchantPaymentAction({
       select: { balance: true },
     });
 
-    if (
-      !currentSenderWallet ||
-      currentSenderWallet.balance < amountInPaise
-    ) {
+    if (!currentSenderWallet || currentSenderWallet.balance < amountInPaise) {
       throw new Error("Insufficient wallet balance.");
     }
 
