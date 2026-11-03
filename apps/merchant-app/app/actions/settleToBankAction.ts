@@ -23,16 +23,16 @@ export async function handleSettleToBank(formData: FormData) {
 
   const amountCents = BigInt(Math.round(amountNumber * 100));
 
+  // 1. Fetch merchant profile to get the wallet ID (no balance check here)
   const merchantProfile = await db.merchantProfile.findUnique({
     where: { userId: session.user.id },
-    include: { Wallet: true },
+    select: { id: true, Wallet: { select: { id: true } } },
   });
 
   if (!merchantProfile?.Wallet) throw new Error("Merchant wallet not found.");
+  const walletId = merchantProfile.Wallet.id;
 
-  const wallet = merchantProfile.Wallet;
-
-  // 1. Idempotency Check
+  // 2. Idempotency Check (Safe outside transaction because idempotencyKey has a unique constraint)
   const existingTx = await db.transaction.findUnique({
     where: { idempotencyKey },
   });
@@ -41,15 +41,26 @@ export async function handleSettleToBank(formData: FormData) {
     return { success: true };
   }
 
-  if (wallet.balance < amountCents) {
-    throw new Error("Insufficient available balance for settlement.");
-  }
-
-  // 2. Atomic Database Transaction (Lock funds & create transaction)
+  // 3. Atomic Database Transaction with Row-Level Locking (FOR UPDATE)
   let transactionId = "";
   await db.$transaction(async (tx) => {
+    // Lock the wallet row and fetch the live balance atomically
+    const wallets = await tx.$queryRaw<Array<{ balance: bigint }>>`
+      SELECT balance FROM "Wallet" 
+      WHERE id = ${walletId} 
+      FOR UPDATE;
+    `;
+
+    const currentWallet = wallets[0];
+
+    // Validate balance securely while the row is locked
+    if (!currentWallet || currentWallet.balance < amountCents) {
+      throw new Error("Insufficient available balance for settlement.");
+    }
+
+    // Deduct from balance and move to locked balance safely
     await tx.wallet.update({
-      where: { id: wallet.id },
+      where: { id: walletId },
       data: {
         balance: { decrement: amountCents },
         locked: { increment: amountCents },
@@ -61,7 +72,7 @@ export async function handleSettleToBank(formData: FormData) {
         amount: amountCents,
         type: "WITHDRAWAL",
         status: "PROCESSING",
-        sourceWalletId: wallet.id,
+        sourceWalletId: walletId,
         destinationWalletId: null,
         idempotencyKey,
       },
@@ -70,7 +81,7 @@ export async function handleSettleToBank(formData: FormData) {
     transactionId = newTx.id;
   });
 
-  // 3. Hit the existing Mock Bank payout route
+  // 4. Hit the existing Mock Bank payout route
   const mockBankUrl =
     process.env.NEXT_PUBLIC_MOCK_BANK_URL || "http://localhost:3001";
 

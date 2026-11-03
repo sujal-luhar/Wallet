@@ -53,48 +53,51 @@ export async function initP2PTransferAction({
 
   // 4. Atomic Prisma Transaction (Instant Balance Transfer)
   const transaction = await db.$transaction(async (tx) => {
-    // Lock & verify sender balance
-    const currentSenderWallet = await tx.wallet.findUnique({
-      where: { id: senderWallet.id },
-      select: { balance: true },
-    });
+  // 1. Lock and fetch sender balance atomically using raw SQL FOR UPDATE
+  const senderWallets = await tx.$queryRaw<Array<{ balance: bigint }>>`
+    SELECT balance FROM "Wallet" 
+    WHERE id = ${senderWallet.id} 
+    FOR UPDATE;
+  `;
 
-    if (
-      !currentSenderWallet ||
-      currentSenderWallet.balance < BigInt(amountInPaise)
-    ) {
-      throw new Error("Insufficient wallet balance.");
-    }
+  const currentSenderWallet = senderWallets[0];
 
-    // Deduct from Sender
-    await tx.wallet.update({
-      where: { id: senderWallet.id },
-      data: {
-        balance: { decrement: amountInPaise },
-      },
-    });
+  if (
+    !currentSenderWallet ||
+    currentSenderWallet.balance < BigInt(amountInPaise)
+  ) {
+    throw new Error("Insufficient wallet balance.");
+  }
 
-    // Credit to Recipient
-    await tx.wallet.update({
-      where: { id: recipientWallet.id },
-      data: {
-        balance: { increment: amountInPaise },
-      },
-    });
-
-    // Create INSTANT SUCCESS Transaction Record
-    return await tx.transaction.create({
-      data: {
-        amount: amountInPaise,
-        type: "P2P_TRANSFER",
-        status: "SUCCESS",
-        idempotencyKey,
-        sourceWalletId: senderWallet.id,
-        destinationWalletId: recipientWallet.id,
-      },
-      select: { id: true },
-    });
+  // 2. Deduct from Sender
+  await tx.wallet.update({
+    where: { id: senderWallet.id },
+    data: {
+      balance: { decrement: amountInPaise },
+    },
   });
+
+  // 3. Credit to Recipient
+  await tx.wallet.update({
+    where: { id: recipientWallet.id },
+    data: {
+      balance: { increment: amountInPaise },
+    },
+  });
+
+  // 4. Create INSTANT SUCCESS Transaction Record
+  return await tx.transaction.create({
+    data: {
+      amount: amountInPaise,
+      type: "P2P_TRANSFER",
+      status: "SUCCESS",
+      idempotencyKey,
+      sourceWalletId: senderWallet.id,
+      destinationWalletId: recipientWallet.id,
+    },
+    select: { id: true },
+  });
+});
 
   return { id: transaction.id };
 }

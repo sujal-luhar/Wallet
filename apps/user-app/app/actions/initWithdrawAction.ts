@@ -37,38 +37,41 @@ export async function initiateWithdrawalAction({
 
   // 3. Atomic Database Operation: Check balance + Deduct balance + Increment locked + Log PENDING Tx
   const transaction = await db.$transaction(async (tx) => {
-    // Lock wallet row & check balance
-    const currentWallet = await tx.wallet.findUnique({
-      where: { id: wallet.id },
-      select: { balance: true },
-    });
+  // 1. Lock wallet row & check balance atomically using raw SQL FOR UPDATE
+  const wallets = await tx.$queryRaw<Array<{ balance: bigint }>>`
+    SELECT balance FROM "Wallet" 
+    WHERE id = ${wallet.id} 
+    FOR UPDATE;
+  `;
 
-    if (!currentWallet || currentWallet.balance < amountInPaise) {
-      throw new Error("Insufficient wallet balance.");
-    }
+  const currentWallet = wallets[0];
 
-    // Deduct from balance and move to locked balance
-    await tx.wallet.update({
-      where: { id: wallet.id },
-      data: {
-        balance: { decrement: amountInPaise },
-        locked: { increment: amountInPaise }, // ◄── Added to track pending withdrawal safely
-      },
-    });
+  if (!currentWallet || currentWallet.balance < BigInt(amountInPaise)) {
+    throw new Error("Insufficient wallet balance.");
+  }
 
-    // Create PENDING withdrawal record
-    return await tx.transaction.create({
-      data: {
-        amount: amountInPaise,
-        type: "WITHDRAWAL",
-        status: "PENDING",
-        idempotencyKey,
-        sourceWalletId: wallet.id,
-        destinationWalletId: null,
-      },
-      select: { id: true },
-    });
+  // 2. Deduct from balance and move to locked balance
+  await tx.wallet.update({
+    where: { id: wallet.id },
+    data: {
+      balance: { decrement: amountInPaise },
+      locked: { increment: amountInPaise }, // Track pending withdrawal safely
+    },
   });
+
+  // 3. Create PENDING withdrawal record
+  return await tx.transaction.create({
+    data: {
+      amount: amountInPaise,
+      type: "WITHDRAWAL",
+      status: "PENDING",
+      idempotencyKey,
+      sourceWalletId: wallet.id,
+      destinationWalletId: null,
+    },
+    select: { id: true },
+  });
+});
 
   // 4. Trigger Server-to-Server Payout Call to Express Mock Bank
   const bankBaseUrl =

@@ -9,19 +9,22 @@ export async function refundTransactionAction(transactionId: string) {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) throw new Error("Unauthorized");
 
+  // 1. Fetch basic merchant profile to get the wallet ID
   const merchantProfile = await db.merchantProfile.findUnique({
     where: { userId: session.user.id },
-    include: { Wallet: true },
+    select: { id: true, Wallet: { select: { id: true } } },
   });
 
   if (!merchantProfile?.Wallet) throw new Error("Merchant wallet not found");
+  const merchantWalletId = merchantProfile.Wallet.id;
 
+  // 2. Fetch basic transaction details for initial validation
   const tx = await db.transaction.findUnique({
     where: { id: transactionId },
-    include: { sourceWallet: true },
+    select: { id: true, amount: true, status: true, destinationWalletId: true, sourceWalletId: true },
   });
 
-  if (!tx || tx.destinationWalletId !== merchantProfile.Wallet.id) {
+  if (!tx || tx.destinationWalletId !== merchantWalletId) {
     throw new Error("Transaction not found or unauthorized.");
   }
 
@@ -35,31 +38,56 @@ export async function refundTransactionAction(transactionId: string) {
 
   const amount = tx.amount;
 
-  if (merchantProfile.Wallet.balance < amount) {
-    throw new Error("Insufficient wallet balance to issue refund.");
+  if (!tx.sourceWalletId) {
+    throw new Error("Invalid source wallet for refund.");
   }
 
-  // Atomic database refund transaction
+  // Store it in a constant so TypeScript narrows the type from "string | null" to "string"
+  const sourceWalletId: string = tx.sourceWalletId;
+
+  // 3. Atomic Database Refund Transaction with Row-Level Locking & Conditional Status Guard
   await db.$transaction(async (dbTx) => {
-    // 1. Deduct from merchant wallet
+    // A. Lock the merchant wallet row and fetch live balance securely
+    const wallets = await dbTx.$queryRaw<Array<{ balance: bigint }>>`
+      SELECT balance FROM "Wallet" 
+      WHERE id = ${merchantWalletId} 
+      FOR UPDATE;
+    `;
+
+    const currentWallet = wallets[0];
+    if (!currentWallet || currentWallet.balance < amount) {
+      throw new Error("Insufficient wallet balance to issue refund.");
+    }
+
+    // B. Guard against double-refunds: Atomically update status ONLY if it's still SUCCESS
+    const updateResult = await dbTx.transaction.updateMany({
+      where: { 
+        id: transactionId, 
+        status: "SUCCESS" 
+      },
+      data: { 
+        status: "REFUNDED" 
+      },
+    });
+
+    if (updateResult.count === 0) {
+      throw new Error("Transaction has already been refunded or is no longer eligible.");
+    }
+
+    // C. Deduct from merchant wallet safely
     await dbTx.wallet.update({
-      where: { id: merchantProfile?.Wallet?.id },
+      where: { id: merchantWalletId },
       data: { balance: { decrement: amount } },
     });
 
-    // 2. Refund back to customer's wallet
+    // D. Refund back to customer's wallet safely
     await dbTx.wallet.update({
-      where: { id: tx.sourceWalletId! },
+      where: { id: sourceWalletId },
       data: { balance: { increment: amount } },
-    });
-
-    // 3. Mark transaction status as REFUNDED
-    await dbTx.transaction.update({
-      where: { id: transactionId },
-      data: { status: "REFUNDED" },
     });
   });
 
   revalidatePath("/transactions");
   revalidatePath("/dashboard");
+  return { success: true };
 }
