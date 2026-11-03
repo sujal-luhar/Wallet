@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { signIn } from "next-auth/react";
 import { Button } from "@wallet/ui/components/ui/button";
 import { Input } from "@wallet/ui/components/ui/input";
+import { signInSchema } from "@wallet/common";
 
 function SigninForm() {
   const router = useRouter();
@@ -23,9 +24,18 @@ function SigninForm() {
     setError(null);
 
     try {
+      const creds = signInSchema.safeParse({ email, password });
+
+      if (!creds.success) {
+        setError(
+          creds.error.issues[0]?.message || "Invalid email or password.",
+        );
+        return;
+      }
+
       const res = await signIn("credentials", {
-        email,
-        password,
+        email: creds.data.email,
+        password: creds.data.password,
         redirect: false,
         callbackUrl,
       });
@@ -130,7 +140,10 @@ function SigninForm() {
 
       <p className="mt-6 text-center text-sm text-gray-600">
         Don&apos;t have an account?{" "}
-        <Link href="/signup" className="font-medium text-blue-600 hover:underline">
+        <Link
+          href="/signup"
+          className="font-medium text-blue-600 hover:underline"
+        >
           Sign up
         </Link>
       </p>
@@ -141,7 +154,11 @@ function SigninForm() {
 export default function SigninPage() {
   return (
     <div className="flex min-h-screen items-center justify-center px-4 py-12">
-      <Suspense fallback={<div className="text-center text-sm text-gray-500">Loading...</div>}>
+      <Suspense
+        fallback={
+          <div className="text-center text-sm text-gray-500">Loading...</div>
+        }
+      >
         <SigninForm />
       </Suspense>
     </div>

@@ -21,7 +21,13 @@ export async function refundTransactionAction(transactionId: string) {
   // 2. Fetch basic transaction details for initial validation
   const tx = await db.transaction.findUnique({
     where: { id: transactionId },
-    select: { id: true, amount: true, status: true, destinationWalletId: true, sourceWalletId: true },
+    select: {
+      id: true,
+      amount: true,
+      status: true,
+      destinationWalletId: true,
+      sourceWalletId: true,
+    },
   });
 
   if (!tx || tx.destinationWalletId !== merchantWalletId) {
@@ -61,17 +67,19 @@ export async function refundTransactionAction(transactionId: string) {
 
     // B. Guard against double-refunds: Atomically update status ONLY if it's still SUCCESS
     const updateResult = await dbTx.transaction.updateMany({
-      where: { 
-        id: transactionId, 
-        status: "SUCCESS" 
+      where: {
+        id: transactionId,
+        status: "SUCCESS",
       },
-      data: { 
-        status: "REFUNDED" 
+      data: {
+        status: "REFUNDED",
       },
     });
 
     if (updateResult.count === 0) {
-      throw new Error("Transaction has already been refunded or is no longer eligible.");
+      throw new Error(
+        "Transaction has already been refunded or is no longer eligible.",
+      );
     }
 
     // C. Deduct from merchant wallet safely

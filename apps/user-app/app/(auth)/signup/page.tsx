@@ -5,6 +5,7 @@ import Link from "next/link";
 import { signIn } from "next-auth/react";
 import { Input } from "@wallet/ui/components/ui/input";
 import { Button } from "@wallet/ui/components/ui/button";
+import { signUpSchema } from "@wallet/common";
 
 export default function SignupPage() {
   const [name, setName] = useState("");
@@ -22,10 +23,22 @@ export default function SignupPage() {
     setSuccessMessage(null);
 
     try {
+      const details = signUpSchema.safeParse({ name, email, phone, password });
+
+      if (!details.success) {
+        setError(details.error.issues[0]?.message || "Validation Failed.");
+        return;
+      }
+
       const res = await fetch("/api/auth/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, phone, password }),
+        body: JSON.stringify({
+          name: details.data.name,
+          email: details.data.email,
+          phone: details.data.phone,
+          password: details.data.password,
+        }),
       });
 
       const data = await res.json();

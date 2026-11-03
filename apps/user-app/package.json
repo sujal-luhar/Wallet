@@ -26,6 +26,7 @@
   "devDependencies": {
     "@wallet/typescript-config": "workspace:*",
     "@wallet/eslint-config": "workspace:*",
+    "@wallet/common": "workspace:*",
     "@tailwindcss/postcss": "catalog:",
     "@types/node": "catalog:",
     "@types/nodemailer": "^8.0.1",

@@ -10,6 +10,12 @@ export const signUpSchema = z.object({
     .max(50, { message: "Name cannot exceed 50 characters" })
     .optional(),
   email: z.email({ message: "Invalid email address format" }),
+  phone: z
+    .string()
+    .regex(
+      /^\+91\d{10}$/,
+      "Invalid Indian phone number. Must start with +91 followed by 10 more digits.",
+    ),
   password: z
     .string()
     .min(8, { message: "Password must be at least 8 characters long" })
@@ -32,14 +38,7 @@ export const signInSchema = z.object({
 });
 
 // ==========================================
-// 3. Email Verification Query Schema
-// ==========================================
-export const verifyEmailSchema = z.object({
-  token: z.string().min(1, { message: "Verification token is required" }),
-});
-
-// ==========================================
-// 4. User Profile Response / Me Schema
+// 3. User Profile Response / Me Schema
 // ==========================================
 export const userProfileSchema = z.object({
   id: z.string(),
@@ -52,5 +51,4 @@ export const userProfileSchema = z.object({
 
 export type SignUpInput = z.infer<typeof signUpSchema>;
 export type SignInInput = z.infer<typeof signInSchema>;
-export type VerifyEmailInput = z.infer<typeof verifyEmailSchema>;
 export type UserProfile = z.infer<typeof userProfileSchema>;

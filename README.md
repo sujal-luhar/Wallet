@@ -39,12 +39,16 @@ wallet/
 ## 🚀 Getting Started
 
 ### 1. Prerequisites
+
 Ensure you have Node.js and `pnpm` installed:
+
 - Node.js: `^20.19.0`, `^22.12.0`, or `>=24.0.0`
 - pnpm: `11.15.1`
 
 ### 2. Installation
+
 Install all workspace dependencies:
+
 ```bash
 pnpm install
 ```
@@ -53,10 +57,10 @@ pnpm install
 
 ## 💻 Development & Verification Commands
 
-| Command | Description |
-| :--- | :--- |
-| `pnpm dev` | Start all applications concurrently in development mode |
-| `pnpm build` | Build all packages and applications in dependency order |
-| `pnpm check-types` | Run type checking across the entire monorepo in parallel |
-| `pnpm lint` | Execute ESLint rule checks across all apps and packages |
-| `pnpm format` | Run Prettier auto-formatting on all TypeScript and Markdown files |
+| Command            | Description                                                       |
+| :----------------- | :---------------------------------------------------------------- |
+| `pnpm dev`         | Start all applications concurrently in development mode           |
+| `pnpm build`       | Build all packages and applications in dependency order           |
+| `pnpm check-types` | Run type checking across the entire monorepo in parallel          |
+| `pnpm lint`        | Execute ESLint rule checks across all apps and packages           |
+| `pnpm format`      | Run Prettier auto-formatting on all TypeScript and Markdown files |
