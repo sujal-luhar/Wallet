@@ -20,7 +20,6 @@
     ],
     "paths": {
       "@/*": ["./*"],
-      "@wallet/db": ["../../packages/db/src/index.ts"]
     }
   },
   "include": [
@@ -29,7 +28,7 @@
     "**/*.tsx",
     ".next/types/**/*.ts",
     ".next/dev/types/**/*.ts",
-    "**/*.mts"
+    "**/*.mts",
   ],
   "exclude": ["node_modules"]
 }

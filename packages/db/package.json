@@ -8,6 +8,10 @@
   "exports": {
     ".": "./src/index.ts"
   },
+  "files": [
+    "src",
+    "prisma"
+  ],
   "scripts": {
     "generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
