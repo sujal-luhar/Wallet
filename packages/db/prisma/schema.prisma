@@ -28,8 +28,7 @@ model User {
   Wallet        Wallet?   @relation("UserWallet")
 
   accounts      Account[]
-  // sessions      Session[]
-
+  
   // A User CAN optionally have a Merchant profile linked to them
   MerchantProfile MerchantProfile?
 
@@ -140,6 +139,8 @@ model VerificationToken {
   identifier String   @id
   token      String   @unique
   expires    DateTime
+  
+  createdAt  DateTime @default(now())
 
   @@unique([identifier, token])
 }

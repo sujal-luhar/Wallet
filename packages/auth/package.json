@@ -20,6 +20,7 @@
   },
   "devDependencies": {
     "@wallet/eslint-config": "workspace:*",
+    "@wallet/common": "workspace:*",
     "@types/bcrypt": "catalog:",
     "eslint": "catalog:",
     "typescript": "catalog:"

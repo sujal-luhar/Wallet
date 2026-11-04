@@ -6,6 +6,7 @@ import { signIn } from "next-auth/react";
 import { Input } from "@wallet/ui/components/ui/input";
 import { Button } from "@wallet/ui/components/ui/button";
 import { signUpSchema } from "@wallet/common";
+import { resendVerificationTokenAction } from "@/app/actions/resendVerificationTokenAction";
 
 export default function SignupPage() {
   const [name, setName] = useState("");
@@ -15,6 +16,11 @@ export default function SignupPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [resendMessage, setResendMessage] = useState<{
+    type: "success" | "error";
+    text: string;
+  } | null>(null);
+  const [resendLoading, setResendLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -29,6 +35,8 @@ export default function SignupPage() {
         setError(details.error.issues[0]?.message || "Validation Failed.");
         return;
       }
+
+      setEmail(details.data.email);
 
       const res = await fetch("/api/auth/signup", {
         method: "POST",
@@ -59,6 +67,31 @@ export default function SignupPage() {
     }
   };
 
+  const handleResend = async () => {
+    if (!email) return;
+
+    setResendLoading(true);
+    setResendMessage(null);
+
+    try {
+      const result = await resendVerificationTokenAction(email);
+
+      if (result.success) {
+        setResendMessage({ type: "success", text: result.message });
+      } else {
+        setResendMessage({ type: "error", text: result.message });
+      }
+    } catch (err) {
+      console.log(err);
+      setResendMessage({
+        type: "error",
+        text: "Something went wrong. Please try again.",
+      });
+    } finally {
+      setResendLoading(false);
+    }
+  };
+
   return (
     <div className="flex min-h-screen items-center justify-center  px-4 py-12">
       <div className="w-full max-w-md p-8 shadow-sm border border-gray-200">
@@ -77,9 +110,30 @@ export default function SignupPage() {
             <div className="mb-4 p-4 text-sm text-green-700 bg-green-50 border border-green-200">
               {successMessage}
             </div>
-            <p className="text-gray-600 text-sm mb-4">
+            <p className="text-gray-600 text-sm mb-2">
               Once verified, you can log in directly.
             </p>
+
+            {/* resend varification email button try */}
+            <button
+              type="button"
+              onClick={handleResend}
+              disabled={resendLoading}
+              className="w-full font-small mb-4 text-gray-400 underline disabled:opacity-50 text-sm"
+            >
+              {resendLoading
+                ? "Sending new link......"
+                : "Didn't receive the email? Click to resend"}
+            </button>
+
+            {resendMessage && (
+              <p
+                className={` mb-4 text-xs ${resendMessage.type === "success" ? "text-green-600" : "text-red-600"}`}
+              >
+                {resendMessage.text}
+              </p>
+            )}
+
             <Link
               href="/signin"
               className="inline-block w-full bg-primary  font-medium py-2 px-4 text-center transition-colors"

@@ -5,6 +5,7 @@ import GoogleProvider from "next-auth/providers/google";
 import bcrypt from "bcrypt";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import { db } from "@wallet/db";
+import { signInSchema } from "@wallet/common";
 
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(db),
@@ -36,12 +37,14 @@ export const authOptions: NextAuthOptions = {
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password) {
+        const { email, password } = await signInSchema.parseAsync(credentials);
+
+        if (!email || !password) {
           throw new Error("Missing email or password");
         }
 
         const user = await db.user.findUnique({
-          where: { email: credentials.email },
+          where: { email: email },
         });
 
         if (!user) {
@@ -59,10 +62,7 @@ export const authOptions: NextAuthOptions = {
           throw new Error("Please verify your email before signing in");
         }
 
-        const isPasswordValid = await bcrypt.compare(
-          credentials.password,
-          user.password,
-        );
+        const isPasswordValid = await bcrypt.compare(password, user.password);
 
         if (!isPasswordValid) {
           throw new Error("Invalid email or password");

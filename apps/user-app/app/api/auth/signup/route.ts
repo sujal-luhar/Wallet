@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import bcrypt from "bcrypt";
-import crypto from "crypto";
 import { db } from "@wallet/db";
 import { sendVerificationEmail } from "@/lib/mailer";
+import { generateVerificationToken } from "@/lib/tokens";
 
 interface SignUpRequestBody {
   email?: string;
@@ -41,15 +41,9 @@ export async function POST(req: Request) {
 
     // 2. Hash password & generate verification token
     const hashedPassword = await bcrypt.hash(password, 10);
-    const token = crypto.randomBytes(32).toString("hex");
-    const expires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
 
     // 3. Create User, Wallet, and VerificationToken atomically
     const user = await db.$transaction(async (tx) => {
-      await tx.verificationToken.deleteMany({
-        where: { identifier: email },
-      });
-
       const newUser = await tx.user.create({
         data: {
           email,
@@ -66,18 +60,11 @@ export async function POST(req: Request) {
         },
       });
 
-      await tx.verificationToken.create({
-        data: {
-          identifier: email,
-          token,
-          expires,
-        },
-      });
-
       return newUser;
     });
 
     // 4. Send verification email
+    const token = await generateVerificationToken(email);
     await sendVerificationEmail(email, token);
 
     return NextResponse.json(
