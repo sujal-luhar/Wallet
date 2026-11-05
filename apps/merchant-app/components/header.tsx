@@ -1,4 +1,4 @@
-// apps/merchant-app/components/header.tsx (or shared packages/ui header)
+// apps/user-app/components/header.tsx (or shared packages/ui header)
 "use client";
 
 import { signOut, useSession } from "next-auth/react";
@@ -17,27 +17,24 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@wallet/ui/components/ui/dropdown-menu";
-import { Building2, User, LogOut } from "lucide-react";
+import { Building2, User, LogOut, Loader2 } from "lucide-react";
+import { useTransition } from "react";
+import { switchAppModeAction } from "@/app/actions/switchAppModeAction";
 
 interface HeaderProps {
   currentApp: "user" | "merchant";
 }
 
-export function Header({ currentApp = "user" }: HeaderProps) {
-  const { data: session } = useSession();
-
-  const userAppUrl =
-    process.env.NEXT_PUBLIC_USER_APP_URL || "http://localhost:3002";
-  const merchantAppUrl =
-    process.env.NEXT_PUBLIC_MERCHANT_APP_URL || "http://localhost:3003";
+export function Header({ currentApp }: HeaderProps) {
+  const [isPending, startTransition] = useTransition();
 
   const handleSwitchApp = () => {
-    if (currentApp === "user") {
-      window.location.href = `${merchantAppUrl}/dashboard`;
-    } else {
-      window.location.href = `${userAppUrl}/dashboard`;
-    }
+    const targetMode = currentApp === "user" ? "merchant" : "user";
+    startTransition(async () => {
+      await switchAppModeAction(targetMode);
+    });
   };
+  const { data: session } = useSession();
 
   return (
     <header className="flex h-16 items-center justify-between border-b bg-card px-6">
@@ -53,9 +50,12 @@ export function Header({ currentApp = "user" }: HeaderProps) {
           variant="outline"
           size="sm"
           onClick={handleSwitchApp}
+          disabled={isPending}
           className="gap-2"
         >
-          {currentApp === "merchant" ? (
+          {isPending ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : currentApp === "merchant" ? (
             <>
               <User className="h-4 w-4" />
               Switch to User Profile
@@ -97,7 +97,7 @@ export function Header({ currentApp = "user" }: HeaderProps) {
             <DropdownMenuSeparator />
             <DropdownMenuItem
               className="cursor-pointer text-red-600"
-              onClick={() => signOut({ callbackUrl: `${userAppUrl}/signin` })}
+              onClick={() => signOut({ callbackUrl: "/signin" })}
             >
               <LogOut className="mr-2 h-4 w-4" />
               Log Out
