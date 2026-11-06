@@ -13,7 +13,11 @@
   "license": "ISC",
   "type": "module",
   "dependencies": {
-    "zod": "^4.4.3"
+    "zod": "^4.4.3",
+    "next": "catalog:",
+    "next-auth": "catalog:",
+    "@wallet/auth": "workspace:*",
+    "@wallet/db": "workspace:*"
   },
   "devDependencies": {
     "@wallet/eslint-config": "workspace:*",
