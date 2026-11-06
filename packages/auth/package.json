@@ -16,7 +16,8 @@
     "@next-auth/prisma-adapter": "^1.0.7",
     "@wallet/db": "workspace:*",
     "bcrypt": "catalog:",
-    "next-auth": "catalog:"
+    "next-auth": "catalog:",
+    "next": "catalog:"
   },
   "devDependencies": {
     "@wallet/eslint-config": "workspace:*",

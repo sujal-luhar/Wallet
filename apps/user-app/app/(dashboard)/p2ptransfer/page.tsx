@@ -1,5 +1,5 @@
 import { getRecentPayees } from "@/dal/p2p";
-import { getWalletBalance } from "@/dal/dashboard";
+import { getWalletBalance } from "@/dal/getbalance";
 import P2PTransferCard from "@/components/p2p-transfer-card";
 
 export default async function P2PTransferPage() {

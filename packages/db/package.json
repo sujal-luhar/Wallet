@@ -26,7 +26,6 @@
   "type": "module",
   "devDependencies": {
     "@types/node": "catalog:",
-    "@types/pg": "^8.20.0",
     "@wallet/typescript-config": "workspace:*",
     "@wallet/eslint-config": "workspace:*",
     "prisma": "catalog:",
@@ -35,10 +34,8 @@
     "typescript": "catalog:"
   },
   "dependencies": {
-    "@prisma/adapter-pg": "^7.9.0",
     "@prisma/client": "catalog:",
     "@prisma/extension-accelerate": "^3.0.1",
-    "dotenv": "catalog:",
-    "pg": "^8.22.0"
+    "dotenv": "catalog:"
   }
 }

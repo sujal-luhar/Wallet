@@ -1,4 +1,4 @@
-import { getWalletBalance } from "@/dal/dashboard";
+import { getWalletBalance } from "@/dal/getbalance";
 import { db } from "@wallet/db";
 
 export async function getRecentPayees() {

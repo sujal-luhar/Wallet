@@ -1,5 +1,5 @@
-import { getWalletBalance } from "@/dal/dashboard";
 import { db } from "@wallet/db";
+import { getWalletBalance } from "./getbalance";
 
 // -----------------------------------------------------------------------------
 // 1. Private query helper to automatically derive Prisma's complex type
@@ -27,7 +27,7 @@ async function fetchRawTransactions(
   });
 }
 
-// 🎯 AUTOMATIC TYPE INFERENCE: Extracts array item type from fetchRawTransactions
+// AUTOMATIC TYPE INFERENCE: Extracts array item type from fetchRawTransactions
 type RawTransactionItem = Awaited<
   ReturnType<typeof fetchRawTransactions>
 >[number];

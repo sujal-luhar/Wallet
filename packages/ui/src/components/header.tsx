@@ -1,13 +1,7 @@
-// apps/user-app/components/header.tsx (or shared packages/ui header)
 "use client";
 
-import { signOut, useSession } from "next-auth/react";
-import { Button } from "@wallet/ui/components/ui/button";
-import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-} from "@wallet/ui/components/ui/avatar";
+import { Button } from "./ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -16,25 +10,35 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@wallet/ui/components/ui/dropdown-menu";
+} from "./ui/dropdown-menu";
 import { Building2, User, LogOut, Loader2 } from "lucide-react";
 import { useTransition } from "react";
-import { switchAppModeAction } from "@/app/actions/switchAppModeAction";
 
-interface HeaderProps {
+export interface HeaderProps {
   currentApp: "user" | "merchant";
+  user?: {
+    name?: string | null;
+    email?: string | null;
+    image?: string | null;
+  };
+  onSignOut: () => void;
+  onSwitchAppMode: (targetMode: "user" | "merchant") => Promise<void>;
 }
 
-export function Header({ currentApp }: HeaderProps) {
+export function Header({
+  currentApp,
+  user,
+  onSignOut,
+  onSwitchAppMode,
+}: HeaderProps) {
   const [isPending, startTransition] = useTransition();
 
   const handleSwitchApp = () => {
     const targetMode = currentApp === "user" ? "merchant" : "user";
     startTransition(async () => {
-      await switchAppModeAction(targetMode);
+      await onSwitchAppMode(targetMode);
     });
   };
-  const { data: session } = useSession();
 
   return (
     <header className="flex h-16 items-center justify-between border-b bg-card px-6">
@@ -72,12 +76,9 @@ export function Header({ currentApp }: HeaderProps) {
         <DropdownMenu>
           <DropdownMenuTrigger className="rounded-full outline-none focus:ring-2 focus:ring-ring">
             <Avatar className="h-9 w-9">
-              <AvatarImage
-                src={session?.user?.image || ""}
-                alt={session?.user?.name || "User"}
-              />
+              <AvatarImage src={user?.image || ""} alt={user?.name || "User"} />
               <AvatarFallback>
-                {session?.user?.name?.[0]?.toUpperCase() || "U"}
+                {user?.name?.[0]?.toUpperCase() || "U"}
               </AvatarFallback>
             </Avatar>
           </DropdownMenuTrigger>
@@ -86,10 +87,10 @@ export function Header({ currentApp }: HeaderProps) {
               <DropdownMenuLabel>
                 <div className="flex flex-col space-y-1">
                   <p className="text-sm font-medium text-foreground">
-                    {session?.user?.name}
+                    {user?.name || "User"}
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    {session?.user?.email}
+                    {user?.email || ""}
                   </p>
                 </div>
               </DropdownMenuLabel>
@@ -97,7 +98,7 @@ export function Header({ currentApp }: HeaderProps) {
             <DropdownMenuSeparator />
             <DropdownMenuItem
               className="cursor-pointer text-red-600"
-              onClick={() => signOut({ callbackUrl: "/signin" })}
+              onClick={onSignOut}
             >
               <LogOut className="mr-2 h-4 w-4" />
               Log Out

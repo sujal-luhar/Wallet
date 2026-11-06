@@ -4,7 +4,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { db } from "@wallet/db";
 import { getServerSession } from "next-auth";
-import { authOptions } from "@wallet/auth";
+import { authOptions } from "../index";
 
 export async function switchAppModeAction(targetMode: "user" | "merchant") {
   const session = await getServerSession(authOptions);
@@ -19,7 +19,6 @@ export async function switchAppModeAction(targetMode: "user" | "merchant") {
     process.env.NEXT_PUBLIC_USER_APP_URL || "http://localhost:3002";
   const merchantAppUrl =
     process.env.NEXT_PUBLIC_MERCHANT_APP_URL || "http://localhost:3003";
-
 
   if (targetMode === "user") {
     cookieStore.set("app_mode", "user", { path: "/" });
