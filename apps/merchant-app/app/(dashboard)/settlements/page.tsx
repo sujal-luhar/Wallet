@@ -7,9 +7,9 @@ import {
   CardTitle,
   CardDescription,
 } from "@wallet/ui/components/ui/card";
-import { Button } from "@wallet/ui/components/ui/button";
-import { Building2, ChevronLeft, ChevronRight } from "lucide-react";
+import { Building2 } from "lucide-react";
 import { PageSizeSelect } from "@/components/page-size-select";
+import PaginationFooter from "@wallet/ui/components/pagination-footer";
 
 interface PageProps {
   searchParams: Promise<{
@@ -117,59 +117,13 @@ export default async function SettlementsPage({ searchParams }: PageProps) {
           </div>
 
           {/* Pagination Footer */}
-          <div className="flex items-center justify-between pt-4 border-t text-xs text-muted-foreground">
-            <div>
-              Page {currentPage} of {totalPages}
-            </div>
-
-            <div className="flex items-center gap-2">
-              {currentPage > 1 ? (
-                <Link
-                  href={`/settlements?page=${currentPage - 1}&limit=${limit}`}
-                >
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="h-8 w-8 p-0 rounded-none"
-                  >
-                    <ChevronLeft className="h-4 w-4" />
-                  </Button>
-                </Link>
-              ) : (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="h-8 w-8 p-0 rounded-none"
-                  disabled
-                >
-                  <ChevronLeft className="h-4 w-4" />
-                </Button>
-              )}
-
-              {currentPage < totalPages ? (
-                <Link
-                  href={`/settlements?page=${currentPage + 1}&limit=${limit}`}
-                >
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="h-8 w-8 p-0 rounded-none"
-                  >
-                    <ChevronRight className="h-4 w-4" />
-                  </Button>
-                </Link>
-              ) : (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="h-8 w-8 p-0 rounded-none"
-                  disabled
-                >
-                  <ChevronRight className="h-4 w-4" />
-                </Button>
-              )}
-            </div>
-          </div>
+          <PaginationFooter
+            currentPage={currentPage}
+            totalPages={totalPages}
+            limit={limit}
+            pageRoute="settlements"
+            Link={Link}
+          />
         </CardContent>
       </Card>
     </div>

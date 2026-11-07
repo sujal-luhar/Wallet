@@ -11,8 +11,9 @@ import {
 } from "@wallet/ui/components/ui/card";
 import { Input } from "@wallet/ui/components/ui/input";
 import { Button } from "@wallet/ui/components/ui/button";
-import { Search, Loader2, ChevronLeft, ChevronRight } from "lucide-react";
+import { Search, Loader2 } from "lucide-react";
 import { refundTransactionAction } from "@/app/actions/refundAction";
+import PaginationFooter from "@wallet/ui/components/pagination-footer";
 
 type TransactionItem = {
   id: string;
@@ -140,13 +141,12 @@ export default function TransactionsClient({
                       </td>
                       <td className="py-3 px-4">
                         <span
-                          className={`inline-block px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded-full ${
-                            tx.status === "SUCCESS"
+                          className={`inline-block px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded-full ${tx.status === "SUCCESS"
                               ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300"
                               : tx.status === "REFUNDED"
                                 ? "bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300"
                                 : "bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300"
-                          }`}
+                            }`}
                         >
                           {tx.status}
                         </span>
@@ -184,59 +184,13 @@ export default function TransactionsClient({
           </div>
 
           {/* Pagination Footer */}
-          <div className="flex items-center justify-between pt-4 border-t text-xs text-muted-foreground">
-            <div>
-              Page {currentPage} of {totalPages}
-            </div>
-
-            <div className="flex items-center gap-2">
-              {currentPage > 1 ? (
-                <Link
-                  href={`/transactions?page=${currentPage - 1}&limit=${limit}`}
-                >
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="h-8 w-8 p-0 rounded-none"
-                  >
-                    <ChevronLeft className="h-4 w-4" />
-                  </Button>
-                </Link>
-              ) : (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="h-8 w-8 p-0 rounded-none"
-                  disabled
-                >
-                  <ChevronLeft className="h-4 w-4" />
-                </Button>
-              )}
-
-              {currentPage < totalPages ? (
-                <Link
-                  href={`/transactions?page=${currentPage + 1}&limit=${limit}`}
-                >
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="h-8 w-8 p-0 rounded-none"
-                  >
-                    <ChevronRight className="h-4 w-4" />
-                  </Button>
-                </Link>
-              ) : (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="h-8 w-8 p-0 rounded-none"
-                  disabled
-                >
-                  <ChevronRight className="h-4 w-4" />
-                </Button>
-              )}
-            </div>
-          </div>
+          <PaginationFooter
+            currentPage={currentPage}
+            totalPages={totalPages}
+            limit={limit}
+            pageRoute="transactions"
+            Link={Link}
+          />
         </CardContent>
       </Card>
     </div>
