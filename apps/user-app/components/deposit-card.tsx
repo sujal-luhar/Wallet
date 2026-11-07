@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { Input } from "@wallet/ui/components/ui/input";
 import { Label } from "@wallet/ui/components/ui/label";
 import {
@@ -14,72 +14,43 @@ import {
   RotateCw,
   ArrowRight,
   ShieldCheck,
-  X,
 } from "lucide-react";
 import { initDepositAction } from "@/app/actions/initDepositAction";
+
+const getSafeIdempotencyKey = () =>
+  typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
+    ? crypto.randomUUID()
+    : `idemp_${Date.now()}`;
 
 export default function DepositCard() {
   const [amount, setAmount] = useState<number>(1000);
   const [paymentMethod, setPaymentMethod] = useState<string>("mock_bank");
-  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const [idempotencyKey, setIdempotencyKey] = useState<string>(getSafeIdempotencyKey);
+  const [isPending, startTransition] = useTransition();
 
-  // 1. Initialize Idempotency Key once safely (fixes TS error)
-  const generateKey = () =>
-    typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
-      ? crypto.randomUUID()
-      : `idemp_${Date.now()}`;
-
-  const [idempotencyKey, setIdempotencyKey] = useState<string>(generateKey);
-
-  // Quick Preset Chips
   const PRESETS = [500, 1000, 2000, 5000];
 
-  // ₹500 Stepper handlers
-  const handleIncrement = () => setAmount((prev) => prev + 500);
-  const handleDecrement = () => setAmount((prev) => Math.max(500, prev - 500));
-  const handlePresetClick = (preset: number) => setAmount(preset);
-
-  // Cancel Handler: Resets error and generates a BRAND NEW Idempotency Key
-  const handleCancel = () => {
-    setError(null);
-    setIsSubmitting(false);
-    setIdempotencyKey(generateKey());
-  };
-
-  // Submit Handler: Keeps using the EXISTING Idempotency Key (even during Retries)
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleDeposit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (amount < 100) {
-      setError("Minimum deposit amount is ₹100");
-      return;
-    }
+    if (amount < 100) return setError("Minimum deposit amount is ₹100");
 
     setError(null);
-    setIsSubmitting(true);
 
-    try {
-      console.log("Initiating deposit with Key:", idempotencyKey, {
-        amount,
-        paymentMethod,
-      });
+    startTransition(async () => {
+      try {
+        const res = await initDepositAction({ amount, idempotencyKey });
 
-      // TODO: Replace with your actual Server Action or fetch call
-      const res = await initDepositAction({ amount, idempotencyKey });
+        const bankBaseUrl =
+          process.env.NEXT_PUBLIC_MOCK_BANK_URL || "http://localhost:3001";
+        const mockbankDepositURL = `${bankBaseUrl}/mock-bank/pay?txnId=${res.id}`;
 
-      const bankBaseUrl =
-        process.env.NEXT_PUBLIC_MOCK_BANK_URL || "http://localhost:3001";
-      const mockbankDepositURL = `${bankBaseUrl}/mock-bank/pay?txnId=${res.id}`;
-
-      window.location.replace(mockbankDepositURL);
-    } catch (err) {
-      console.error("Deposit Error:", err);
-      setError(
-        "Network connection failed. You can safely retry without double-charging.",
-      );
-    } finally {
-      setIsSubmitting(false);
-    }
+        window.location.replace(mockbankDepositURL);
+      } catch (err) {
+        console.error("Deposit Error:", err);
+        setError("Network connection failed. You can safely retry without double-charging.");
+      }
+    });
   };
 
   return (
@@ -91,13 +62,13 @@ export default function DepositCard() {
             Top up your wallet balance instantly
           </p>
         </div>
-        <div className="flex items-center gap-1 text-xs text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-none font-medium">
+        <div className="flex items-center gap-1 text-xs text-emerald-600 bg-emerald-50 px-2.5 py-1 font-medium">
           <ShieldCheck className="h-3.5 w-3.5" />
           <span>Secure</span>
         </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <form onSubmit={handleDeposit} className="space-y-6">
         {/* Amount Input with Stepper */}
         <div className="space-y-2">
           <Label
@@ -112,10 +83,9 @@ export default function DepositCard() {
               type="button"
               variant="outline"
               size="icon"
-              onClick={handleDecrement}
-              disabled={amount <= 500 || isSubmitting}
+              onClick={() => setAmount((prev) => Math.max(100, prev - 500))}
+              disabled={amount <= 100 || isPending}
               className="h-10 w-10 shrink-0 rounded-none"
-              title="Decrease by ₹500"
             >
               <Minus className="h-4 w-4" />
             </Button>
@@ -134,9 +104,8 @@ export default function DepositCard() {
                   setAmount(Number(e.target.value));
                   if (error) setError(null);
                 }}
-                disabled={isSubmitting || !!error}
+                disabled={isPending}
                 className="pl-7 text-lg font-semibold tracking-tight h-10 rounded-none"
-                placeholder="1000"
               />
             </div>
 
@@ -144,10 +113,9 @@ export default function DepositCard() {
               type="button"
               variant="outline"
               size="icon"
-              onClick={handleIncrement}
-              disabled={isSubmitting || !!error}
+              onClick={() => setAmount((prev) => prev + 500)}
+              disabled={isPending}
               className="h-10 w-10 shrink-0 rounded-none"
-              title="Increase by ₹500"
             >
               <Plus className="h-4 w-4" />
             </Button>
@@ -159,8 +127,8 @@ export default function DepositCard() {
               <button
                 key={preset}
                 type="button"
-                onClick={() => handlePresetClick(preset)}
-                disabled={isSubmitting || !!error}
+                onClick={() => setAmount(preset)}
+                disabled={isPending}
                 className={`rounded-none px-2.5 py-1 text-xs font-medium transition-colors border ${
                   amount === preset
                     ? "bg-primary text-primary-foreground border-primary"
@@ -182,133 +150,74 @@ export default function DepositCard() {
           <RadioGroup
             value={paymentMethod}
             onValueChange={setPaymentMethod}
-            disabled={isSubmitting || !!error}
+            disabled={isPending}
             className="grid gap-2"
           >
-            <div
-              className={`flex items-center justify-between border p-3 cursor-pointer rounded-none transition-colors ${
-                paymentMethod === "mock_bank"
-                  ? "border-primary bg-primary/5"
-                  : "hover:bg-muted/50"
-              }`}
-              onClick={() =>
-                !isSubmitting && !error && setPaymentMethod("mock_bank")
-              }
-            >
-              <div className="flex items-center gap-3">
-                <RadioGroupItem
-                  value="mock_bank"
-                  id="pm-mock"
-                  className="rounded-none"
-                />
-                <Label htmlFor="pm-mock" className="cursor-pointer font-medium">
-                  Mock Bank (Development)
-                </Label>
+            {[
+              { id: "mock_bank", label: "Mock Bank (Development)", tag: "Test Mode" },
+              { id: "upi", label: "UPI Instant Transfer" },
+              { id: "netbanking", label: "NetBanking" },
+            ].map((method) => (
+              <div
+                key={method.id}
+                className={`flex items-center justify-between border p-3 cursor-pointer rounded-none transition-colors ${
+                  paymentMethod === method.id
+                    ? "border-primary bg-primary/5"
+                    : "hover:bg-muted/50"
+                }`}
+                onClick={() => !isPending && setPaymentMethod(method.id)}
+              >
+                <div className="flex items-center gap-3">
+                  <RadioGroupItem value={method.id} id={`pm-${method.id}`} className="rounded-none" />
+                  <Label htmlFor={`pm-${method.id}`} className="cursor-pointer font-medium">
+                    {method.label}
+                  </Label>
+                </div>
+                {method.tag && (
+                  <span className="text-[10px] font-semibold uppercase bg-amber-100 text-amber-800 px-2 py-0.5 rounded-none">
+                    {method.tag}
+                  </span>
+                )}
               </div>
-              <span className="text-[10px] font-semibold uppercase bg-amber-100 text-amber-800 px-2 py-0.5 rounded-none">
-                Test Mode
-              </span>
-            </div>
-
-            <div
-              className={`flex items-center justify-between border p-3 cursor-pointer rounded-none transition-colors ${
-                paymentMethod === "upi"
-                  ? "border-primary bg-primary/5"
-                  : "hover:bg-muted/50"
-              }`}
-              onClick={() => !isSubmitting && !error && setPaymentMethod("upi")}
-            >
-              <div className="flex items-center gap-3">
-                <RadioGroupItem
-                  value="upi"
-                  id="pm-upi"
-                  className="rounded-none"
-                />
-                <Label htmlFor="pm-upi" className="cursor-pointer font-medium">
-                  UPI Instant Transfer
-                </Label>
-              </div>
-            </div>
-
-            <div
-              className={`flex items-center justify-between border p-3 cursor-pointer rounded-none transition-colors ${
-                paymentMethod === "netbanking"
-                  ? "border-primary bg-primary/5"
-                  : "hover:bg-muted/50"
-              }`}
-              onClick={() =>
-                !isSubmitting && !error && setPaymentMethod("netbanking")
-              }
-            >
-              <div className="flex items-center gap-3">
-                <RadioGroupItem
-                  value="netbanking"
-                  id="pm-net"
-                  className="rounded-none"
-                />
-                <Label htmlFor="pm-net" className="cursor-pointer font-medium">
-                  NetBanking
-                </Label>
-              </div>
-            </div>
+            ))}
           </RadioGroup>
         </div>
 
         {/* Error Feedback Banner */}
         {error && (
-          <div className="rounded-none bg-destructive/15 p-3 text-xs text-destructive border border-destructive/30">
-            {error}
+          <div className="rounded-none bg-destructive/15 p-3 text-xs text-destructive border border-destructive/30 flex items-center justify-between">
+            <span>{error}</span>
+            <button
+              type="button"
+              onClick={() => {
+                setError(null);
+                setIdempotencyKey(getSafeIdempotencyKey());
+              }}
+              className="underline text-[11px] font-medium ml-2 shrink-0"
+            >
+              Reset Key
+            </button>
           </div>
         )}
 
-        {/* Dynamic Action Buttons Section */}
-        {error ? (
-          /* When Error Occurs: Show side-by-side Retry and Cancel buttons */
-          <div className="flex gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={handleCancel}
-              className="w-1/2 h-11 font-medium text-sm rounded-none"
-            >
-              <X className="mr-2 h-4 w-4" />
-              Cancel
-            </Button>
-            <Button
-              type="submit"
-              disabled={isSubmitting}
-              className="w-1/2 h-11 font-medium text-sm rounded-none"
-            >
-              {isSubmitting ? (
-                <RotateCw className="h-4 w-4 animate-spin" />
-              ) : (
-                <>
-                  <RotateCw className="mr-2 h-4 w-4" />
-                  Retry
-                </>
-              )}
-            </Button>
-          </div>
-        ) : (
-          /* Normal State: Show Primary Action Button */
-          <Button
-            type="submit"
-            disabled={isSubmitting || amount <= 0}
-            className="w-full h-11 font-medium text-sm rounded-none"
-          >
-            {isSubmitting ? (
-              <>
-                <RotateCw className="mr-2 h-4 w-4 animate-spin" />
-                Connecting to Bank Gateway...
-              </>
-            ) : (
-              <>
-                Proceed to Add ₹{amount ? amount.toLocaleString("en-IN") : "0"}
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </>
-            )}
-          </Button>
-        )}
+        {/* Single Streamlined Action Button */}
+        <Button
+          type="submit"
+          disabled={isPending || amount <= 0}
+          className="w-full h-11 font-medium text-sm rounded-none"
+        >
+          {isPending ? (
+            <>
+              <RotateCw className="mr-2 h-4 w-4 animate-spin" />
+              Connecting to Bank Gateway...
+            </>
+          ) : (
+            <>
+              {error ? "Try Again" : `Proceed to Add ₹${amount.toLocaleString("en-IN")}`}
+              <ArrowRight className="ml-2 h-4 w-4" />
+            </>
+          )}
+        </Button>
       </form>
     </div>
   );

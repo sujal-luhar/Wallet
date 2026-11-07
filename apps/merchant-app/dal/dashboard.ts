@@ -1,6 +1,5 @@
 import { db } from "@wallet/db";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@wallet/auth";
+import getMerchantProfile from "./get-merchant-profile";
 
 // Helper to get consistent YYYY-MM-DD local date strings
 function getLocalDateKey(d: Date): string {
@@ -11,14 +10,8 @@ function getLocalDateKey(d: Date): string {
 }
 
 export async function getMerchantDashboardData() {
-  const session = await getServerSession(authOptions);
-  if (!session?.user?.id) throw new Error("Unauthorized");
-
-  const merchantProfile = await db.merchantProfile.findUnique({
-    where: { userId: session.user.id },
-    include: { Wallet: true },
-  });
-
+  const merchantProfile = await getMerchantProfile()
+  
   if (!merchantProfile || !merchantProfile.Wallet) {
     throw new Error("Merchant profile or wallet not found");
   }

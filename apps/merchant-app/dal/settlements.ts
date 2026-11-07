@@ -1,6 +1,5 @@
 import { db } from "@wallet/db";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@wallet/auth";
+import getMerchantProfile from "./get-merchant-profile";
 
 interface PaginationParams {
   page?: number;
@@ -11,13 +10,7 @@ export async function getPaginatedMerchantSettlements({
   page = 1,
   limit = 10,
 }: PaginationParams) {
-  const session = await getServerSession(authOptions);
-  if (!session?.user?.id) throw new Error("Unauthorized");
-
-  const merchantProfile = await db.merchantProfile.findUnique({
-    where: { userId: session.user.id },
-    include: { Wallet: true },
-  });
+  const merchantProfile = await getMerchantProfile()
 
   if (!merchantProfile?.Wallet) {
     return { settlements: [], totalCount: 0, totalPages: 1, currentPage: 1 };
