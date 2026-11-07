@@ -7,16 +7,13 @@ import {
   CardHeader,
   CardTitle,
 } from "@wallet/ui/components/ui/card";
-import { Button } from "@wallet/ui/components/ui/button";
 import {
   ArrowDownLeft,
   ArrowUpRight,
   Clock,
-  ChevronLeft,
-  ChevronRight,
 } from "lucide-react";
-import { PageSizeSelect } from "@/components/page-size-select";
 import PaginationFooter from "@wallet/ui/components/pagination-footer";
+import { TransactionsPageSize } from "@/components/transactions-page-size";
 
 interface PageProps {
   searchParams: Promise<{
@@ -47,7 +44,7 @@ export default async function TransactionsPage({ searchParams }: PageProps) {
             </CardDescription>
           </div>
 
-          <PageSizeSelect currentLimit={limit} />
+          <TransactionsPageSize currentLimit={limit} />
         </CardHeader>
 
         <CardContent className="space-y-6">

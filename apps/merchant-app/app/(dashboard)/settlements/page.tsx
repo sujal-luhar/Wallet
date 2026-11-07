@@ -8,8 +8,8 @@ import {
   CardDescription,
 } from "@wallet/ui/components/ui/card";
 import { Building2 } from "lucide-react";
-import { PageSizeSelect } from "@/components/page-size-select";
 import PaginationFooter from "@wallet/ui/components/pagination-footer";
+import { SettlementsPageSize } from "@/components/settlements-page-size";
 
 interface PageProps {
   searchParams: Promise<{
@@ -49,8 +49,10 @@ export default async function SettlementsPage({ searchParams }: PageProps) {
             </CardDescription>
           </div>
 
-          <PageSizeSelect currentLimit={limit} />
+          <SettlementsPageSize currentLimit={limit} />
+
         </CardHeader>
+
         <CardContent className="space-y-4">
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm">
@@ -97,14 +99,13 @@ export default async function SettlementsPage({ searchParams }: PageProps) {
                       </td>
                       <td className="py-3 px-4 text-right">
                         <span
-                          className={`inline-block px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded-full ${
-                            stl.status === "SUCCESS"
-                              ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300"
-                              : stl.status === "PENDING" ||
-                                  stl.status === "PROCESSING"
-                                ? "bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300"
-                                : "bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300"
-                          }`}
+                          className={`inline-block px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded-full ${stl.status === "SUCCESS"
+                            ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300"
+                            : stl.status === "PENDING" ||
+                              stl.status === "PROCESSING"
+                              ? "bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300"
+                              : "bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300"
+                            }`}
                         >
                           {stl.status}
                         </span>
