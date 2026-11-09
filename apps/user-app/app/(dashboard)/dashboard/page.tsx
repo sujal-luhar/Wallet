@@ -9,9 +9,10 @@ import {
   CardTitle,
 } from "@wallet/ui/components/ui/card";
 import { Button } from "@wallet/ui/components/ui/button";
-import { ArrowUpRight, ArrowDownLeft, Wallet, Clock } from "lucide-react";
+import { ArrowUpRight, ArrowDownLeft, Wallet } from "lucide-react";
 import getDashboardData from "@/dal/dashboard";
 import Link from "next/link";
+import { TransactionsRows } from "@/components/transactions-rows";
 
 export default async function DashboardPage() {
   const session = await getServerSession(authOptions);
@@ -113,52 +114,7 @@ export default async function DashboardPage() {
           </Link>
         </CardHeader>
         <CardContent>
-          <div className="divide-y divide-border/50">
-            {recentTransactions.map(
-              (tx: (typeof recentTransactions)[number]) => (
-                <div
-                  key={tx.id}
-                  className="flex items-center justify-between py-3.5 first:pt-0 last:pb-0"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 rounded-full bg-muted">
-                      {tx.amount.startsWith("+") ? (
-                        <ArrowDownLeft className="h-4 w-4 text-emerald-600" />
-                      ) : (
-                        <ArrowUpRight className="h-4 w-4 text-muted-foreground" />
-                      )}
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium leading-none">
-                        {tx.title}
-                      </p>
-                      <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
-                        <Clock className="h-3 w-3" />
-                        {tx.date}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="text-right">
-                    <p
-                      className={`text-sm font-semibold ${tx.amount.startsWith("-") ? "text-foreground" : "text-emerald-600 dark:text-emerald-400"}`}
-                    >
-                      {tx.amount}
-                    </p>
-                    <span
-                      className={`text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full inline-block mt-1 ${
-                        tx.status === "SUCCESS"
-                          ? "bg-emerald-500/10 text-emerald-600"
-                          : "bg-rose-500/10 text-rose-600"
-                      }`}
-                    >
-                      {tx.status}
-                    </span>
-                  </div>
-                </div>
-              ),
-            )}
-          </div>
+          <TransactionsRows transactions={recentTransactions} />
         </CardContent>
       </Card>
     </div>
