@@ -69,7 +69,7 @@ export default function SignupPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
-  
+
   const [resendMessage, setResendMessage] = useState<{
     type: "success" | "error";
     text: string;
@@ -78,7 +78,7 @@ export default function SignupPage() {
   const [isPending, startTransition] = useTransition();
   const [resendLoading, startResendTransition] = useTransition();
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     setSuccessMessage(null);
@@ -90,7 +90,7 @@ export default function SignupPage() {
       return;
     }
 
-    // Removed redundant setEmail state setter call; 
+    // Removed redundant setEmail state setter call;
     // details.data.email is already fully available synchronously right here.
 
     startTransition(async () => {
@@ -163,7 +163,7 @@ export default function SignupPage() {
         />
       ) : (
         <>
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSignup} className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Full Name

@@ -1,7 +1,8 @@
 "use server";
 
-import { getWalletBalance } from "@/dal/getbalance";
 import { db } from "@wallet/db";
+import { TxActionResponse } from "@wallet/common";
+import { resolveWalletAndAuth, checkIdempotency } from "@wallet/auth/actions/tx.action-guard";
 
 interface MerchantPaymentInput {
   merchantId: string; // Business/Merchant Identifier or phone
@@ -13,26 +14,19 @@ export async function initMerchantPaymentAction({
   merchantId,
   amount,
   idempotencyKey,
-}: MerchantPaymentInput) {
+}: MerchantPaymentInput): Promise<TxActionResponse> {
   // 1. Validation
   if (!amount || amount < 1) {
     throw new Error("Minimum payment amount is ₹1.");
   }
 
   const amountInPaise = BigInt(amount * 100);
-  const senderWallet = await getWalletBalance();
-
-  if (!senderWallet?.id) {
-    throw new Error("Unauthorized.");
-  }
+  const { walletId: senderWalletId } = await resolveWalletAndAuth(false);
 
   // 2. Idempotency Check
-  const existingTx = await db.transaction.findUnique({
-    where: { idempotencyKey },
-    select: { id: true },
-  });
+  const existingTx = await checkIdempotency(idempotencyKey);
   if (existingTx) {
-    return { id: existingTx.id };
+    return { success: true, id: existingTx.id };
   }
 
   // 3. Find Merchant Wallet
@@ -50,7 +44,7 @@ export async function initMerchantPaymentAction({
 
   const destinationWallet = merchantProfile.Wallet;
 
-  if (destinationWallet.id === senderWallet.id) {
+  if (destinationWallet.id === senderWalletId) {
     throw new Error(
       "You cannot pay your own merchant wallet from your user wallet.",
     );
@@ -59,9 +53,9 @@ export async function initMerchantPaymentAction({
   // 4. Atomic Prisma Transaction
   const transaction = await db.$transaction(async (tx) => {
     // 1. Lock and fetch sender wallet using raw SQL FOR UPDATE
-    const senderWallets = await tx.$queryRaw<Array<{ balance: number }>>`
+    const senderWallets = await tx.$queryRaw<Array<{ balance: bigint }>>`
     SELECT balance FROM "Wallet" 
-    WHERE id = ${senderWallet.id} 
+    WHERE id = ${senderWalletId} 
     FOR UPDATE;
   `;
 
@@ -73,7 +67,7 @@ export async function initMerchantPaymentAction({
 
     // 2. Deduct from Sender User Wallet
     await tx.wallet.update({
-      where: { id: senderWallet.id },
+      where: { id: senderWalletId },
       data: {
         balance: { decrement: amountInPaise },
       },
@@ -94,12 +88,12 @@ export async function initMerchantPaymentAction({
         type: "MERCHANT_PAYMENT",
         status: "SUCCESS",
         idempotencyKey,
-        sourceWalletId: senderWallet.id,
+        sourceWalletId: senderWalletId,
         destinationWalletId: destinationWallet.id,
       },
       select: { id: true },
     });
   });
 
-  return { id: transaction.id };
+  return { success: true, id: transaction.id };
 }

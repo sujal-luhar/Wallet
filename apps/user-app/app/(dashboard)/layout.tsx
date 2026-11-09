@@ -23,7 +23,8 @@ export default async function DashboardLayout({
 
   const cookieStore = await cookies();
   const appModeCookie = cookieStore.get("app_mode")?.value;
-  const appMode: "user" | "merchant" = appModeCookie === "merchant" ? "merchant" : "user";
+  const appMode: "user" | "merchant" =
+    appModeCookie === "merchant" ? "merchant" : "user";
 
   return (
     <div className="flex h-screen overflow-hidden bg-background">

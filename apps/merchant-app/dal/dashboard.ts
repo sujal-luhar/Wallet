@@ -10,8 +10,8 @@ function getLocalDateKey(d: Date): string {
 }
 
 export async function getMerchantDashboardData() {
-  const merchantProfile = await getMerchantProfile()
-  
+  const merchantProfile = await getMerchantProfile();
+
   if (!merchantProfile || !merchantProfile.Wallet) {
     throw new Error("Merchant profile or wallet not found");
   }

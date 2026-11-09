@@ -141,6 +141,9 @@ importers:
       '@types/react-dom':
         specifier: 'catalog:'
         version: 19.2.2(@types/react@19.2.2)
+      '@wallet/common':
+        specifier: workspace:*
+        version: link:../../packages/common
       '@wallet/eslint-config':
         specifier: workspace:*
         version: link:../../packages/eslint-config

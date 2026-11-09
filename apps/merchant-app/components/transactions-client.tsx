@@ -12,7 +12,7 @@ import {
 import { Input } from "@wallet/ui/components/ui/input";
 import { Button } from "@wallet/ui/components/ui/button";
 import { Search, Loader2 } from "lucide-react";
-import { refundTransactionAction } from "@/app/actions/refundAction";
+import { refundTransactionAction } from "@/app/actions/tx.refund.action";
 import PaginationFooter from "@wallet/ui/components/pagination-footer";
 
 type TransactionItem = {
@@ -50,12 +50,12 @@ export default function TransactionsClient({
       tx.shortId.toLowerCase().includes(search.toLowerCase()),
   );
 
-  const handleRefund = (id: string) => {
+  const handleRefund = (transactionId: string) => {
     setError(null);
-    setLoadingId(id);
+    setLoadingId(transactionId);
     startTransition(async () => {
       try {
-        await refundTransactionAction(id);
+        await refundTransactionAction({ transactionId });
       } catch (err: unknown) {
         if (err instanceof Error) {
           setError(err.message);
@@ -141,12 +141,13 @@ export default function TransactionsClient({
                       </td>
                       <td className="py-3 px-4">
                         <span
-                          className={`inline-block px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded-full ${tx.status === "SUCCESS"
+                          className={`inline-block px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded-full ${
+                            tx.status === "SUCCESS"
                               ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300"
                               : tx.status === "REFUNDED"
                                 ? "bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300"
                                 : "bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300"
-                            }`}
+                          }`}
                         >
                           {tx.status}
                         </span>

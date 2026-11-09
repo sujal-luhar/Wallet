@@ -22,6 +22,7 @@
     "tw-animate-css": "catalog:"
   },
   "devDependencies": {
+    "@wallet/common": "workspace:*",
     "@wallet/typescript-config": "workspace:*",
     "@wallet/eslint-config": "workspace:*",
     "@tailwindcss/postcss": "catalog:",

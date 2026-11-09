@@ -16,8 +16,8 @@ import { Button } from "@wallet/ui/components/ui/button";
 import { Input } from "@wallet/ui/components/ui/input";
 import { Label } from "@wallet/ui/components/ui/label";
 import { Tabs, TabsList, TabsTrigger } from "@wallet/ui/components/ui/tabs";
-import { initP2PTransferAction } from "@/app/actions/initP2PTransferAction";
-import { initMerchantPaymentAction } from "@/app/actions/initMerchantPaymentAction";
+import { initP2PTransferAction } from "@/app/actions/tx.p2p-transfer.action";
+import { initMerchantPaymentAction } from "@/app/actions/tx.merchant-payment.action";
 // Optional: import { initMerchantPaymentAction } from "@/app/actions/initMerchantPaymentAction";
 
 type RecentPayee = {
@@ -58,7 +58,7 @@ export default function P2PTransferCard({
     setError(null);
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleP2P = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
 
@@ -185,7 +185,7 @@ export default function P2PTransferCard({
       )}
 
       {/* Form Fields */}
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleP2P} className="space-y-4">
         {transferType === "p2p" ? (
           /* Personal Recipient Field */
           <div className="space-y-2">

@@ -12,9 +12,7 @@ async function getAuthUserId() {
   return session.user.id;
 }
 
-
 export async function getWalletBalance() {
-
   const userId = await getAuthUserId();
 
   const wallet = await db.wallet.findUnique({

@@ -1,7 +1,8 @@
 "use server";
 
-import { getWalletBalance } from "@/dal/getbalance";
 import { db } from "@wallet/db";
+import { TxActionResponse } from "@wallet/common";
+import { resolveWalletAndAuth, checkIdempotency } from "@wallet/auth/actions/tx.action-guard";
 
 interface WithdrawalInput {
   amount: number; // Amount in Rupees from client UI
@@ -11,26 +12,18 @@ interface WithdrawalInput {
 export async function initiateWithdrawalAction({
   amount,
   idempotencyKey,
-}: WithdrawalInput) {
+}: WithdrawalInput): Promise<TxActionResponse> {
   if (!amount || amount < 100) {
     throw new Error("Minimum withdrawal amount is ₹100.");
   }
 
   const amountInPaise = amount * 100;
-  const wallet = await getWalletBalance();
+  const { walletId } = await resolveWalletAndAuth(false);
 
-  if (!wallet?.id) {
-    throw new Error("Unauthorized access.");
-  }
-
-  const existingTx = await db.transaction.findUnique({
-    where: { idempotencyKey },
-    select: { id: true, status: true },
-  });
-
+  const existingTx = await checkIdempotency(idempotencyKey);
   if (existingTx) {
     if (existingTx.status === "PENDING" || existingTx.status === "PROCESSING") {
-      return { id: existingTx.id };
+      return { success: true, id: existingTx.id };
     }
     throw new Error("This transaction has already concluded.");
   }
@@ -40,7 +33,7 @@ export async function initiateWithdrawalAction({
     // 1. Lock wallet row & check balance atomically using raw SQL FOR UPDATE
     const wallets = await tx.$queryRaw<Array<{ balance: bigint }>>`
     SELECT balance FROM "Wallet" 
-    WHERE id = ${wallet.id} 
+    WHERE id = ${walletId} 
     FOR UPDATE;
   `;
 
@@ -52,7 +45,7 @@ export async function initiateWithdrawalAction({
 
     // 2. Deduct from balance and move to locked balance
     await tx.wallet.update({
-      where: { id: wallet.id },
+      where: { id: walletId },
       data: {
         balance: { decrement: amountInPaise },
         locked: { increment: amountInPaise }, // Track pending withdrawal safely
@@ -66,7 +59,7 @@ export async function initiateWithdrawalAction({
         type: "WITHDRAWAL",
         status: "PENDING",
         idempotencyKey,
-        sourceWalletId: wallet.id,
+        sourceWalletId: walletId,
         destinationWalletId: null,
       },
       select: { id: true },
@@ -91,5 +84,5 @@ export async function initiateWithdrawalAction({
     console.error("Failed to notify mock bank:", err);
   }
 
-  return { id: transaction.id };
+  return { success: true, id: transaction.id };
 }

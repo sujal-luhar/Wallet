@@ -11,7 +11,7 @@ import {
 import { Button } from "@wallet/ui/components/ui/button";
 import { Input } from "@wallet/ui/components/ui/input";
 import { ArrowUpRight, Loader2, CheckCircle2, XCircle } from "lucide-react";
-import { handleSettleToBank } from "@/app/actions/settleToBankAction";
+import { handleSettleToBank } from "@/app/actions/tx.settle-bank.action";
 
 interface SettleToBankCardProps {
   availableBalance: number;
@@ -65,21 +65,26 @@ export function SettleToBankCard({ availableBalance }: SettleToBankCardProps) {
     };
   }, [activeTxId, router]);
 
-  const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSettlement = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError(null);
     setTxStatus("IDLE");
 
     const formData = new FormData(e.currentTarget);
+    const rawAmount = formData.get("amount") as string;
+    const amount = Number(rawAmount);
     const idempotencyKey = crypto.randomUUID();
-    formData.append("idempotencyKey", idempotencyKey);
 
     startTransition(async () => {
       try {
-        const result = await handleSettleToBank(formData);
-        if (result?.success && result.txId) {
+        const result = await handleSettleToBank({
+          amount,
+          idempotencyKey,
+        });
+
+        if (result?.success && result.id) {
           setAmount("");
-          setActiveTxId(result.txId);
+          setActiveTxId(result.id);
           setTxStatus("PROCESSING"); // Start polling loop
         }
       } catch (err: unknown) {
@@ -106,7 +111,7 @@ export function SettleToBankCard({ availableBalance }: SettleToBankCardProps) {
       <CardContent>
         {/* State 1 & Initial: Form Input */}
         {txStatus === "IDLE" && (
-          <form onSubmit={onSubmit} className="space-y-4">
+          <form onSubmit={handleSettlement} className="space-y-4">
             {error && (
               <div className="p-2 text-xs bg-rose-500/10 border border-rose-500/20 text-rose-600">
                 {error}

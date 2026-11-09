@@ -10,8 +10,8 @@ export async function getPaginatedMerchantTransactions({
   page = 1,
   limit = 10,
 }: PaginationParams) {
-  const merchantProfile = await getMerchantProfile()
-  
+  const merchantProfile = await getMerchantProfile();
+
   if (!merchantProfile?.Wallet) {
     return { transactions: [], totalCount: 0, totalPages: 1, currentPage: 1 };
   }

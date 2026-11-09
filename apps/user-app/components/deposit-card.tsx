@@ -2,9 +2,12 @@
 
 import { useState, useTransition } from "react";
 import { Label } from "@wallet/ui/components/ui/label";
-import { RadioGroup, RadioGroupItem } from "@wallet/ui/components/ui/radio-group";
+import {
+  RadioGroup,
+  RadioGroupItem,
+} from "@wallet/ui/components/ui/radio-group";
 import { ShieldCheck } from "lucide-react";
-import { initDepositAction } from "@/app/actions/initDepositAction";
+import { initDepositAction } from "@/app/actions/tx.deposit.action";
 import { AmountActionCardWrapper } from "@/components/amount-action-card-wrapper";
 
 const getSafeIdempotencyKey = () =>
@@ -16,12 +19,17 @@ export default function DepositCard() {
   const [amount, setAmount] = useState<number>(1000);
   const [paymentMethod, setPaymentMethod] = useState<string>("mock_bank");
   const [error, setError] = useState<string | null>(null);
-  const [idempotencyKey, setIdempotencyKey] = useState<string>(getSafeIdempotencyKey);
+  const [idempotencyKey, setIdempotencyKey] = useState<string>(
+    getSafeIdempotencyKey,
+  );
   const [isPending, startTransition] = useTransition();
 
-  const presets = [500, 1000, 2000, 5000].map((v) => ({ label: `+₹${v}`, value: v }));
+  const presets = [500, 1000, 2000, 5000].map((v) => ({
+    label: `+₹${v}`,
+    value: v,
+  }));
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleDeposit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (amount < 100) return setError("Minimum deposit amount is ₹100");
 
@@ -29,11 +37,14 @@ export default function DepositCard() {
     startTransition(async () => {
       try {
         const res = await initDepositAction({ amount, idempotencyKey });
-        const bankBaseUrl = process.env.NEXT_PUBLIC_MOCK_BANK_URL || "http://localhost:3001";
+        const bankBaseUrl =
+          process.env.NEXT_PUBLIC_MOCK_BANK_URL || "http://localhost:3001";
         window.location.replace(`${bankBaseUrl}/mock-bank/pay?txnId=${res.id}`);
       } catch (err) {
         console.error("Deposit Error:", err);
-        setError("Network connection failed. You can safely retry without double-charging.");
+        setError(
+          "Network connection failed. You can safely retry without double-charging.",
+        );
       }
     });
   };
@@ -59,7 +70,7 @@ export default function DepositCard() {
         setError(null);
         setIdempotencyKey(getSafeIdempotencyKey());
       }}
-      onSubmit={handleSubmit}
+      onSubmit={handleDeposit}
       submitButtonText="Proceed to Add"
     >
       {/* Unique Deposit Feature: Payment Method Selector */}
@@ -74,20 +85,33 @@ export default function DepositCard() {
           className="grid gap-2"
         >
           {[
-            { id: "mock_bank", label: "Mock Bank (Development)", tag: "Test Mode" },
+            {
+              id: "mock_bank",
+              label: "Mock Bank (Development)",
+              tag: "Test Mode",
+            },
             { id: "upi", label: "UPI Instant Transfer" },
             { id: "netbanking", label: "NetBanking" },
           ].map((method) => (
             <div
               key={method.id}
               className={`flex items-center justify-between border p-3 cursor-pointer rounded-none transition-colors ${
-                paymentMethod === method.id ? "border-primary bg-primary/5" : "hover:bg-muted/50"
+                paymentMethod === method.id
+                  ? "border-primary bg-primary/5"
+                  : "hover:bg-muted/50"
               }`}
               onClick={() => !isPending && setPaymentMethod(method.id)}
             >
               <div className="flex items-center gap-3">
-                <RadioGroupItem value={method.id} id={`pm-${method.id}`} className="rounded-none" />
-                <Label htmlFor={`pm-${method.id}`} className="cursor-pointer font-medium">
+                <RadioGroupItem
+                  value={method.id}
+                  id={`pm-${method.id}`}
+                  className="rounded-none"
+                />
+                <Label
+                  htmlFor={`pm-${method.id}`}
+                  className="cursor-pointer font-medium"
+                >
                   {method.label}
                 </Label>
               </div>

@@ -20,7 +20,7 @@ function SigninForm() {
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSignin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
 
@@ -59,7 +59,7 @@ function SigninForm() {
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSignin} className="space-y-4">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
             Email Address

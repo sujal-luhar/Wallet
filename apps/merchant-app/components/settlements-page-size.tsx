@@ -2,7 +2,7 @@
 // To help the UI component framework-agnostic and
 // to keep the settlements page a server component
 // It's bad to make the entire settlements page client component just
-// because of this single component which uses hooks. 
+// because of this single component which uses hooks.
 
 "use client";
 
@@ -13,7 +13,9 @@ interface SettlementsPageSizeProps {
   currentLimit: number;
 }
 
-export function SettlementsPageSize({ currentLimit }: SettlementsPageSizeProps) {
+export function SettlementsPageSize({
+  currentLimit,
+}: SettlementsPageSizeProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const pathname = usePathname();

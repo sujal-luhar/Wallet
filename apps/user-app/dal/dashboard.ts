@@ -2,7 +2,6 @@ import { db } from "@wallet/db";
 import { getRecentTransactions } from "./transactions";
 import { getWalletBalance } from "./getbalance";
 
-
 async function getMonthlyTransactionStats(walletId: string | undefined) {
   if (!walletId) {
     return {

@@ -1,7 +1,8 @@
 "use server";
 
-import { getWalletBalance } from "@/dal/getbalance";
 import { db } from "@wallet/db";
+import { TxActionResponse } from "@wallet/common";
+import { resolveWalletAndAuth, checkIdempotency } from "@wallet/auth/actions/tx.action-guard";
 
 interface DepositActionInput {
   amount: number;
@@ -12,24 +13,17 @@ interface DepositActionInput {
 export async function initDepositAction({
   amount,
   idempotencyKey,
-}: DepositActionInput) {
+}: DepositActionInput): Promise<TxActionResponse> {
   if (!amount || amount < 100) {
     throw new Error("Minimum deposit amount is ₹100.");
   }
 
-  const wallet = await getWalletBalance();
-  if (!wallet?.id) {
-    throw new Error("Unauthorized or wallet not found.");
-  }
+  const { walletId } = await resolveWalletAndAuth(false);
 
-  const existingTransaction = await db.transaction.findUnique({
-    where: { idempotencyKey },
-    select: { id: true, status: true },
-  });
-
+  const existingTransaction = await checkIdempotency(idempotencyKey);
   if (existingTransaction) {
     if (existingTransaction.status === "PENDING") {
-      return existingTransaction;
+      return { success: true, id: existingTransaction.id };
     }
 
     throw new Error(
@@ -44,12 +38,12 @@ export async function initDepositAction({
       status: "PENDING",
       idempotencyKey: idempotencyKey,
       sourceWalletId: null,
-      destinationWalletId: wallet.id,
+      destinationWalletId: walletId,
     },
     select: {
       id: true,
     },
   });
 
-  return transaction;
+  return { success: true, id: transaction.id };
 }

@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { Label } from "@wallet/ui/components/ui/label";
 import { ShieldCheck, Building2, CheckCircle2 } from "lucide-react";
-import { initiateWithdrawalAction } from "@/app/actions/initWithdrawAction";
+import { initiateWithdrawalAction } from "@/app/actions/tx.withdraw.action";
 import { useRouter } from "next/navigation";
 import { AmountActionCardWrapper } from "@/components/amount-action-card-wrapper";
 
@@ -20,7 +20,9 @@ export default function WithdrawCard({ balance }: WithdrawCardProps) {
   const router = useRouter();
   const [amount, setAmount] = useState<number>(1000);
   const [error, setError] = useState<string | null>(null);
-  const [idempotencyKey, setIdempotencyKey] = useState<string>(getSafeIdempotencyKey);
+  const [idempotencyKey, setIdempotencyKey] = useState<string>(
+    getSafeIdempotencyKey,
+  );
   const [isPending, startTransition] = useTransition();
 
   const presets = [
@@ -33,7 +35,8 @@ export default function WithdrawCard({ balance }: WithdrawCardProps) {
   const handleWithdraw = async (e: React.FormEvent) => {
     e.preventDefault();
     if (amount < 100) return setError("Minimum withdrawal amount is ₹100.");
-    if (amount > balance) return setError("Entered amount exceeds your available balance.");
+    if (amount > balance)
+      return setError("Entered amount exceeds your available balance.");
 
     setError(null);
 
@@ -43,7 +46,9 @@ export default function WithdrawCard({ balance }: WithdrawCardProps) {
         router.push(`/payment-success?txId=${res.id}`);
       } catch (err) {
         console.error("Withdrawal Error:", err);
-        setError("Network timeout. You can safely retry without duplicating requests.");
+        setError(
+          "Network timeout. You can safely retry without duplicating requests.",
+        );
       }
     });
   };
@@ -95,7 +100,9 @@ export default function WithdrawCard({ balance }: WithdrawCardProps) {
             </div>
             <div>
               <p className="text-xs font-semibold">HDFC Bank •••• 4092</p>
-              <p className="text-[11px] text-muted-foreground">Primary Account</p>
+              <p className="text-[11px] text-muted-foreground">
+                Primary Account
+              </p>
             </div>
           </div>
           <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" />

@@ -17,21 +17,20 @@ interface PageSizeSelectProps {
   onNavigate: (newUrl: string) => void;
 }
 
-export default function PageSizeSelect({ 
-  currentLimit, 
-  currentSearchString, 
-  currentPathname, 
-  onNavigate 
+export default function PageSizeSelect({
+  currentLimit,
+  currentSearchString,
+  currentPathname,
+  onNavigate,
 }: PageSizeSelectProps) {
-
   const handleLimitChange = (value: string | null) => {
     if (!value) return;
 
     // Use standard browser URLSearchParams API (supported everywhere natively)
     const params = new URLSearchParams(currentSearchString);
     params.set("limit", value);
-    params.set("page", "1"); 
-    
+    params.set("page", "1");
+
     // Fire the abstract callback up to the parent framework
     onNavigate(`${currentPathname}?${params.toString()}`);
   };

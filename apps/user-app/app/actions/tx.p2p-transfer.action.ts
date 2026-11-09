@@ -1,7 +1,8 @@
 "use server";
 
-import { getWalletBalance } from "@/dal/getbalance";
 import { db } from "@wallet/db";
+import { TxActionResponse } from "@wallet/common";
+import { resolveWalletAndAuth, checkIdempotency } from "@wallet/auth/actions/tx.action-guard";
 
 interface P2PTransferInput {
   recipientPhone: string;
@@ -13,32 +14,25 @@ export async function initP2PTransferAction({
   recipientPhone,
   amount,
   idempotencyKey,
-}: P2PTransferInput) {
+}: P2PTransferInput): Promise<TxActionResponse> {
   // 1. Validation
   if (!amount || amount < 1) {
     throw new Error("Minimum transfer amount is ₹1.");
   }
 
   const amountInPaise = amount * 100;
-  const senderWallet = await getWalletBalance();
-
-  if (!senderWallet?.id) {
-    throw new Error("Unauthorized.");
-  }
+  const { walletId: senderWalletId } = await resolveWalletAndAuth(false);
 
   // 2. Idempotency Check
-  const existingTx = await db.transaction.findUnique({
-    where: { idempotencyKey },
-    select: { id: true },
-  });
+  const existingTx = await checkIdempotency(idempotencyKey);
   if (existingTx) {
-    return { id: existingTx.id };
+    return { success: true, id: existingTx.id };
   }
 
   // 3. Find Recipient Wallet by Phone Number
   const recipientUser = await db.user.findUnique({
     where: { phone: recipientPhone },
-    include: { Wallet: true }, // Ensure exact relation name (wallet / Wallet) matches your schema
+    include: { Wallet: true },
   });
 
   if (!recipientUser || !recipientUser.Wallet) {
@@ -47,7 +41,7 @@ export async function initP2PTransferAction({
 
   const recipientWallet = recipientUser.Wallet;
 
-  if (recipientWallet.id === senderWallet.id) {
+  if (recipientWallet.id === senderWalletId) {
     throw new Error("You cannot send money to your own wallet.");
   }
 
@@ -56,7 +50,7 @@ export async function initP2PTransferAction({
     // 1. Lock and fetch sender balance atomically using raw SQL FOR UPDATE
     const senderWallets = await tx.$queryRaw<Array<{ balance: bigint }>>`
     SELECT balance FROM "Wallet" 
-    WHERE id = ${senderWallet.id} 
+    WHERE id = ${senderWalletId} 
     FOR UPDATE;
   `;
 
@@ -71,7 +65,7 @@ export async function initP2PTransferAction({
 
     // 2. Deduct from Sender
     await tx.wallet.update({
-      where: { id: senderWallet.id },
+      where: { id: senderWalletId },
       data: {
         balance: { decrement: amountInPaise },
       },
@@ -92,12 +86,12 @@ export async function initP2PTransferAction({
         type: "P2P_TRANSFER",
         status: "SUCCESS",
         idempotencyKey,
-        sourceWalletId: senderWallet.id,
+        sourceWalletId: senderWalletId,
         destinationWalletId: recipientWallet.id,
       },
       select: { id: true },
     });
   });
 
-  return { id: transaction.id };
+  return { success: true, id: transaction.id };
 }
