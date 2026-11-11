@@ -3,13 +3,10 @@
 import { db } from "@wallet/db";
 import { revalidatePath } from "next/cache";
 import { resolveWalletAndAuth, assertValidRefundTarget } from "@wallet/auth/actions/tx.action-guard";
-import { TxActionResponse } from "@wallet/common";
+import { safeAction, refundSchema, RefundInput, TxActionResponse } from "@wallet/common";
 
-interface RefundActionInput {
-  transactionId: string;
-}
-
-export async function refundTransactionAction({ transactionId }: RefundActionInput): Promise<TxActionResponse> {
+// Pure business logic function (accepts validated data)
+async function executeRefund({ transactionId }: RefundInput): Promise<TxActionResponse> {
   const { walletId: merchantWalletId } = await resolveWalletAndAuth(true);
   const { amount, sourceWalletId } = await assertValidRefundTarget(transactionId, merchantWalletId);
 
@@ -50,3 +47,6 @@ export async function refundTransactionAction({ transactionId }: RefundActionInp
   
   return { success: true, id: transactionId };
 }
+
+// Exported Server Action wrapped with validation & safe error handling
+export const refundTransactionAction = safeAction(refundSchema, executeRefund);

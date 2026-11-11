@@ -55,7 +55,10 @@ export default function TransactionsClient({
     setLoadingId(transactionId);
     startTransition(async () => {
       try {
-        await refundTransactionAction({ transactionId });
+        const result= await refundTransactionAction({ transactionId });
+        if (!result.success) { 
+          setError(result.error)
+        }
       } catch (err: unknown) {
         if (err instanceof Error) {
           setError(err.message);

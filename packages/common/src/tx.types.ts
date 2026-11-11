@@ -1,5 +1,4 @@
-export interface TxActionResponse{
-  success: boolean;
-  id?: string;       // Transaction ID
-  error?: string;    // Optional error message
-}
+export type TxActionResponse<T = string> =
+  | { success: true; id: T }
+  | { success: false; error: string };
+
