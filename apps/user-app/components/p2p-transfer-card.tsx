@@ -69,33 +69,31 @@ export default function P2PTransferCard({
 
     setIsSubmitting(true);
 
-    try {
-      const idempotencyKey = `tx_${crypto.randomUUID()}`;
+    const idempotencyKey = `p2p_${crypto.randomUUID()}`;
 
-      if (transferType === "p2p") {
-        const res = await initP2PTransferAction({
-          recipientPhone,
-          amount,
-          idempotencyKey,
-        });
-        router.push(`/payment-success?txId=${res.id}`);
-      } else {
-        const res = await initMerchantPaymentAction({
-          merchantId,
-          amount,
-          idempotencyKey,
-        });
-        router.push(`/payment-success?txId=${res.id}`);
-      }
-    } catch (err: unknown) {
-      if (err instanceof Error) {
-        setError(err.message || "Failed to process transfer.");
-      } else {
-        setError("Failed to process transfer.");
-      }
-    } finally {
-      setIsSubmitting(false);
+    let res;
+    if (transferType === "p2p") {
+      res = await initP2PTransferAction({
+        recipientPhone,
+        amount,
+        idempotencyKey,
+      });
+    } else {
+      res = await initMerchantPaymentAction({
+        merchantId,
+        amount,
+        idempotencyKey,
+      });
     }
+
+    setIsSubmitting(false);
+
+    if (!res.success) {
+      setError(res.error);
+      return;
+    }
+
+    router.push(`/payment-success?txId=${res.id}`);
   };
 
   return (

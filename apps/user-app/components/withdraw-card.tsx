@@ -11,18 +11,10 @@ interface WithdrawCardProps {
   balance: number;
 }
 
-const getSafeIdempotencyKey = () =>
-  typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
-    ? crypto.randomUUID()
-    : `idemp_${Date.now()}`;
-
 export default function WithdrawCard({ balance }: WithdrawCardProps) {
   const router = useRouter();
   const [amount, setAmount] = useState<number>(1000);
   const [error, setError] = useState<string | null>(null);
-  const [idempotencyKey, setIdempotencyKey] = useState<string>(
-    getSafeIdempotencyKey,
-  );
   const [isPending, startTransition] = useTransition();
 
   const presets = [
@@ -41,15 +33,16 @@ export default function WithdrawCard({ balance }: WithdrawCardProps) {
     setError(null);
 
     startTransition(async () => {
-      try {
-        const res = await initiateWithdrawalAction({ amount, idempotencyKey });
-        router.push(`/payment-success?txId=${res.id}`);
-      } catch (err) {
-        console.error("Withdrawal Error:", err);
-        setError(
-          "Network timeout. You can safely retry without duplicating requests.",
-        );
+      const idempotencyKey = `withdraw_${crypto.randomUUID()}`;
+
+      const res = await initiateWithdrawalAction({ amount, idempotencyKey });
+
+      if (!res.success) {
+        setError(res.error);
+        return;
       }
+
+      router.push(`/payment-success?txId=${res.id}`);
     });
   };
 
@@ -73,7 +66,6 @@ export default function WithdrawCard({ balance }: WithdrawCardProps) {
       error={error}
       onErrorReset={() => {
         setError(null);
-        setIdempotencyKey(getSafeIdempotencyKey());
       }}
       onSubmit={handleWithdraw}
       submitButtonText="Continue with"

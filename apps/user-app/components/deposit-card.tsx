@@ -1,27 +1,19 @@
 "use client";
 
-import { useState, useTransition } from "react";
 import { Label } from "@wallet/ui/components/ui/label";
 import {
   RadioGroup,
   RadioGroupItem,
 } from "@wallet/ui/components/ui/radio-group";
 import { ShieldCheck } from "lucide-react";
+import { useState, useTransition } from "react";
 import { initDepositAction } from "@/app/actions/tx.deposit.action";
 import { AmountActionCardWrapper } from "@/components/amount-action-card-wrapper";
-
-const getSafeIdempotencyKey = () =>
-  typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
-    ? crypto.randomUUID()
-    : `idemp_${Date.now()}`;
 
 export default function DepositCard() {
   const [amount, setAmount] = useState<number>(1000);
   const [paymentMethod, setPaymentMethod] = useState<string>("mock_bank");
   const [error, setError] = useState<string | null>(null);
-  const [idempotencyKey, setIdempotencyKey] = useState<string>(
-    getSafeIdempotencyKey,
-  );
   const [isPending, startTransition] = useTransition();
 
   const presets = [500, 1000, 2000, 5000].map((v) => ({
@@ -35,17 +27,22 @@ export default function DepositCard() {
 
     setError(null);
     startTransition(async () => {
-      try {
-        const res = await initDepositAction({ amount, idempotencyKey });
-        const bankBaseUrl =
-          process.env.NEXT_PUBLIC_MOCK_BANK_URL || "http://localhost:3001";
-        window.location.replace(`${bankBaseUrl}/mock-bank/pay?txnId=${res.id}`);
-      } catch (err) {
-        console.error("Deposit Error:", err);
-        setError(
-          "Network connection failed. You can safely retry without double-charging.",
-        );
+      const idempotencyKey = `deposit_${crypto.randomUUID()}`;
+
+      const res = await initDepositAction({
+        amount,
+        paymentMethod,
+        idempotencyKey,
+      });
+
+      if (!res.success) {
+        setError(res.error);
+        return;
       }
+
+      const bankBaseUrl =
+        process.env.NEXT_PUBLIC_MOCK_BANK_URL || "http://localhost:3001";
+      window.location.replace(`${bankBaseUrl}/mock-bank/pay?txnId=${res.id}`);
     });
   };
 
@@ -68,7 +65,6 @@ export default function DepositCard() {
       error={error}
       onErrorReset={() => {
         setError(null);
-        setIdempotencyKey(getSafeIdempotencyKey());
       }}
       onSubmit={handleDeposit}
       submitButtonText="Proceed to Add"
@@ -95,11 +91,10 @@ export default function DepositCard() {
           ].map((method) => (
             <div
               key={method.id}
-              className={`flex items-center justify-between border p-3 cursor-pointer rounded-none transition-colors ${
-                paymentMethod === method.id
+              className={`flex items-center justify-between border p-3 cursor-pointer rounded-none transition-colors ${paymentMethod === method.id
                   ? "border-primary bg-primary/5"
                   : "hover:bg-muted/50"
-              }`}
+                }`}
               onClick={() => !isPending && setPaymentMethod(method.id)}
             >
               <div className="flex items-center gap-3">

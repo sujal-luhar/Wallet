@@ -73,35 +73,30 @@ export function SettleToBankCard({ availableBalance }: SettleToBankCardProps) {
     const formData = new FormData(e.currentTarget);
     const rawAmount = formData.get("amount") as string;
     const amount = Number(rawAmount);
-    const idempotencyKey = crypto.randomUUID();
+    const idempotencyKey = `settle_${crypto.randomUUID()}`;
 
     startTransition(async () => {
-      try {
-        const result = await handleSettleToBank({
-          amount,
-          idempotencyKey,
-        });
+      const result = await handleSettleToBank({
+        amount,
+        idempotencyKey,
+      });
 
-        if (result?.success && result.id) {
-          setAmount("");
-          setActiveTxId(result.id);
-          setTxStatus("PROCESSING"); // Start polling loop
-        }
-      } catch (err: unknown) {
-        if (err instanceof Error) {
-          setError(err.message);
-        } else {
-          setError("Failed to initiate payout.");
-        }
+      if (!result.success) {
+        setError(result.error);
         setTxStatus("IDLE");
+        return;
       }
+
+      setAmount("");
+      setActiveTxId(result.id);
+      setTxStatus("PROCESSING"); // Start polling loop
     });
   };
 
   const handleReset = () => {
     setTxStatus("IDLE");
     setActiveTxId(null);
-  };
+  };  
 
   return (
     <Card className="md:col-span-3">
