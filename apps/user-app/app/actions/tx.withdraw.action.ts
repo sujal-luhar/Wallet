@@ -1,22 +1,13 @@
 "use server";
 
 import { db } from "@wallet/db";
-import { TxActionResponse } from "@wallet/common";
 import { resolveWalletAndAuth, checkIdempotency } from "@wallet/auth/actions/tx.action-guard";
+import { safeAction, withdrawSchema, WithdrawInput, TxActionResponse } from "@wallet/common";
 
-interface WithdrawalInput {
-  amount: number; // Amount in Rupees from client UI
-  idempotencyKey: string;
-}
-
-export async function initiateWithdrawalAction({
+async function executeWithdrawal({
   amount,
   idempotencyKey,
-}: WithdrawalInput): Promise<TxActionResponse> {
-  if (!amount || amount < 100) {
-    throw new Error("Minimum withdrawal amount is ₹100.");
-  }
-
+}: WithdrawInput): Promise<TxActionResponse> {
   const amountInPaise = amount * 100;
   const { walletId } = await resolveWalletAndAuth(false);
 
@@ -28,7 +19,7 @@ export async function initiateWithdrawalAction({
     throw new Error("This transaction has already concluded.");
   }
 
-  // 3. Atomic Database Operation: Check balance + Deduct balance + Increment locked + Log PENDING Tx
+  // Atomic Database Operation: Check balance + Deduct balance + Increment locked + Log PENDING Tx
   const transaction = await db.$transaction(async (tx) => {
     // 1. Lock wallet row & check balance atomically using raw SQL FOR UPDATE
     const wallets = await tx.$queryRaw<Array<{ balance: bigint }>>`
@@ -86,3 +77,5 @@ export async function initiateWithdrawalAction({
 
   return { success: true, id: transaction.id };
 }
+
+export const initiateWithdrawalAction = safeAction(withdrawSchema, executeWithdrawal);

@@ -1,35 +1,24 @@
 "use server";
 
 import { db } from "@wallet/db";
-import { TxActionResponse } from "@wallet/common";
 import { resolveWalletAndAuth, checkIdempotency } from "@wallet/auth/actions/tx.action-guard";
+import { safeAction, merchantPaymentSchema, MerchantPaymentInput, TxActionResponse } from "@wallet/common";
 
-interface MerchantPaymentInput {
-  merchantId: string; // Business/Merchant Identifier or phone
-  amount: number; // Amount in Rupees
-  idempotencyKey: string;
-}
-
-export async function initMerchantPaymentAction({
+async function executeMerchantPayment({
   merchantId,
   amount,
   idempotencyKey,
 }: MerchantPaymentInput): Promise<TxActionResponse> {
-  // 1. Validation
-  if (!amount || amount < 1) {
-    throw new Error("Minimum payment amount is ₹1.");
-  }
-
   const amountInPaise = BigInt(amount * 100);
   const { walletId: senderWalletId } = await resolveWalletAndAuth(false);
 
-  // 2. Idempotency Check
+  // 1. Idempotency Check
   const existingTx = await checkIdempotency(idempotencyKey);
   if (existingTx) {
     return { success: true, id: existingTx.id };
   }
 
-  // 3. Find Merchant Wallet
+  // 2. Find Merchant Wallet
   // Search MerchantProfile by ID, or by the User's phone linked to the profile
   const merchantProfile = await db.merchantProfile.findFirst({
     where: {
@@ -50,7 +39,7 @@ export async function initMerchantPaymentAction({
     );
   }
 
-  // 4. Atomic Prisma Transaction
+  // 3. Atomic Prisma Transaction
   const transaction = await db.$transaction(async (tx) => {
     // 1. Lock and fetch sender wallet using raw SQL FOR UPDATE
     const senderWallets = await tx.$queryRaw<Array<{ balance: bigint }>>`
@@ -97,3 +86,5 @@ export async function initMerchantPaymentAction({
 
   return { success: true, id: transaction.id };
 }
+
+export const initMerchantPaymentAction = safeAction(merchantPaymentSchema, executeMerchantPayment);

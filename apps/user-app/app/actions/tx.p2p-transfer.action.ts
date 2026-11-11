@@ -1,25 +1,14 @@
 "use server";
 
 import { db } from "@wallet/db";
-import { TxActionResponse } from "@wallet/common";
 import { resolveWalletAndAuth, checkIdempotency } from "@wallet/auth/actions/tx.action-guard";
+import { safeAction, p2pTransferSchema, P2PTransferInput, TxActionResponse } from "@wallet/common";
 
-interface P2PTransferInput {
-  recipientPhone: string;
-  amount: number; // Amount in Rupees
-  idempotencyKey: string;
-}
-
-export async function initP2PTransferAction({
+async function executeP2PTransfer({
   recipientPhone,
   amount,
   idempotencyKey,
 }: P2PTransferInput): Promise<TxActionResponse> {
-  // 1. Validation
-  if (!amount || amount < 1) {
-    throw new Error("Minimum transfer amount is ₹1.");
-  }
-
   const amountInPaise = amount * 100;
   const { walletId: senderWalletId } = await resolveWalletAndAuth(false);
 
@@ -32,7 +21,7 @@ export async function initP2PTransferAction({
   // 3. Find Recipient Wallet by Phone Number
   const recipientUser = await db.user.findUnique({
     where: { phone: recipientPhone },
-    include: { Wallet: true },
+    include: { Wallet: true }, // Ensure exact relation name (wallet / Wallet) matches your schema
   });
 
   if (!recipientUser || !recipientUser.Wallet) {
@@ -95,3 +84,5 @@ export async function initP2PTransferAction({
 
   return { success: true, id: transaction.id };
 }
+
+export const initP2PTransferAction = safeAction(p2pTransferSchema, executeP2PTransfer);

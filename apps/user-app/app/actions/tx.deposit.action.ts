@@ -1,23 +1,13 @@
 "use server";
 
 import { db } from "@wallet/db";
-import { TxActionResponse } from "@wallet/common";
 import { resolveWalletAndAuth, checkIdempotency } from "@wallet/auth/actions/tx.action-guard";
+import { safeAction, depositSchema, DepositInput, TxActionResponse } from "@wallet/common";
 
-interface DepositActionInput {
-  amount: number;
-  paymentMethod?: string;
-  idempotencyKey: string;
-}
-
-export async function initDepositAction({
+async function executeDeposit({
   amount,
   idempotencyKey,
-}: DepositActionInput): Promise<TxActionResponse> {
-  if (!amount || amount < 100) {
-    throw new Error("Minimum deposit amount is ₹100.");
-  }
-
+}: DepositInput): Promise<TxActionResponse> {
   const { walletId } = await resolveWalletAndAuth(false);
 
   const existingTransaction = await checkIdempotency(idempotencyKey);
@@ -47,3 +37,5 @@ export async function initDepositAction({
 
   return { success: true, id: transaction.id };
 }
+
+export const initDepositAction = safeAction(depositSchema, executeDeposit);

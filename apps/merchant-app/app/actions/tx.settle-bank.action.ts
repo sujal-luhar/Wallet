@@ -3,18 +3,9 @@
 import { db } from "@wallet/db";
 import { revalidatePath } from "next/cache";
 import { resolveWalletAndAuth, checkIdempotency } from "@wallet/auth/actions/tx.action-guard";
-import { TxActionResponse } from "@wallet/common";
+import { safeAction, settleToBankSchema, SettleToBankInput, TxActionResponse } from "@wallet/common";
 
-interface SettleToBankInput {
-  amount: number;
-  idempotencyKey: string;
-}
-
-export async function handleSettleToBank({ amount, idempotencyKey }: SettleToBankInput) : Promise<TxActionResponse> {
-  if (!amount || amount <= 0) {
-    throw new Error("Invalid settlement amount.");
-  }
-
+async function executeSettleToBank({ amount, idempotencyKey }: SettleToBankInput): Promise<TxActionResponse> {
   const { walletId } = await resolveWalletAndAuth(true);
   const amountCents = BigInt(Math.round(amount * 100));
 
@@ -74,3 +65,5 @@ export async function handleSettleToBank({ amount, idempotencyKey }: SettleToBan
   
   return { success: true, id: transactionId };
 }
+
+export const handleSettleToBank = safeAction(settleToBankSchema, executeSettleToBank);
