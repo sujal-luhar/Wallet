@@ -1,4 +1,4 @@
-import { getMerchantDashboardData } from "@/dal/dashboard";
+import { getMerchantDashboardData } from "@/dal/merchant.dashboard.dal";
 import {
   Card,
   CardContent,

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { getPaginatedTransactions } from "@/dal/transactions";
+import { getPaginatedTransactions } from "@/dal/tx.history.dal";
 import {
   Card,
   CardContent,

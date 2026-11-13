@@ -1,4 +1,4 @@
-import { getPaginatedMerchantTransactions } from "@/dal/transactions";
+import { getPaginatedMerchantTransactions } from "@/dal/tx.history.dal";
 import TransactionsClient from "@/components/transactions-client";
 
 interface PageProps {

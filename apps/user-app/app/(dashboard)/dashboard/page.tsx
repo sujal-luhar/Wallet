@@ -10,7 +10,7 @@ import {
 } from "@wallet/ui/components/ui/card";
 import { Button } from "@wallet/ui/components/ui/button";
 import { ArrowUpRight, ArrowDownLeft, Wallet } from "lucide-react";
-import getDashboardData from "@/dal/dashboard";
+import getDashboardData from "@/dal/user.dashboard.dal";
 import Link from "next/link";
 import { TransactionsRows } from "@/components/transactions-rows";
 

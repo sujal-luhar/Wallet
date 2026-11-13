@@ -1,5 +1,5 @@
 import { db } from "@wallet/db";
-import { getWalletBalance } from "./getbalance";
+import { getWalletBalance } from "./user.balance.dal";
 
 // -----------------------------------------------------------------------------
 // 1. Private query helper to automatically derive Prisma's complex type

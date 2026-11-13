@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { getPaginatedMerchantSettlements } from "@/dal/settlements";
+import { getPaginatedMerchantSettlements } from "@/dal/tx.settlements.dal";
 import {
   Card,
   CardContent,

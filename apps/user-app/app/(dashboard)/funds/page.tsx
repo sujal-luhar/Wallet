@@ -1,6 +1,6 @@
 import BalanceCard from "@/components/balance-card";
 import FundsTabs from "@/components/funds-tabs";
-import { getWalletBalance } from "@/dal/getbalance";
+import { getWalletBalance } from "@/dal/user.balance.dal";
 
 export default async function FundsPage() {
   const wallet = await getWalletBalance();

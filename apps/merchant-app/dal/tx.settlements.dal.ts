@@ -1,5 +1,5 @@
 import { db } from "@wallet/db";
-import getMerchantProfile from "./get-merchant-profile";
+import getMerchantProfile from "./merchant.profile.dal";
 
 interface PaginationParams {
   page?: number;

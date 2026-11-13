@@ -1,5 +1,5 @@
 import { db } from "@wallet/db";
-import getMerchantProfile from "./get-merchant-profile";
+import getMerchantProfile from "./merchant.profile.dal";
 
 // Helper to get consistent YYYY-MM-DD local date strings
 function getLocalDateKey(d: Date): string {

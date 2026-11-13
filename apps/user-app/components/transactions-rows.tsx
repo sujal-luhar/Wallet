@@ -1,5 +1,5 @@
 import { ArrowDownLeft, ArrowUpRight, Clock } from "lucide-react";
-import { getPaginatedTransactions } from "@/dal/transactions";
+import { getPaginatedTransactions } from "@/dal/tx.history.dal";
 
 type TransactionItem = Awaited<
   ReturnType<typeof getPaginatedTransactions>

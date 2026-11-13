@@ -1,6 +1,6 @@
 import { db } from "@wallet/db";
-import { getRecentTransactions } from "./transactions";
-import { getWalletBalance } from "./getbalance";
+import { getRecentTransactions } from "./tx.history.dal";
+import { getWalletBalance } from "./user.balance.dal";
 
 async function getMonthlyTransactionStats(walletId: string | undefined) {
   if (!walletId) {
