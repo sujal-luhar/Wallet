@@ -7,7 +7,7 @@ import {
   CardTitle,
 } from "@wallet/ui/components/ui/card";
 import { Input } from "@wallet/ui/components/ui/input";
-import { handleMerchantOnboarding } from "../../actions/merchantOnboardingAction";
+import { handleMerchantOnboarding } from "../../actions/merchant.onboarding.action";
 
 export default function MerchantOnboardingPage() {
   return (

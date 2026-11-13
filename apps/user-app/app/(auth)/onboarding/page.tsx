@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { updatePhoneNumber } from "@/app/actions/user";
+import { updatePhoneNumber } from "@/app/actions/user.update-phone.action";
 import { Button } from "@wallet/ui/components/ui/button";
 import { Input } from "@wallet/ui/components/ui/input";
 import {

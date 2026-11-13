@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Input } from "@wallet/ui/components/ui/input";
 import { Button } from "@wallet/ui/components/ui/button";
 import { signUpSchema } from "@wallet/common";
-import { resendVerificationTokenAction } from "@/app/actions/resendVerificationTokenAction";
+import { resendVerificationTokenAction } from "@/app/actions/user.resend-verification-token.action";
 import { AuthCardWrapper } from "@/components/auth-card-wrapper";
 import { GoogleSignInButton } from "@/components/google-signin-button";
 
