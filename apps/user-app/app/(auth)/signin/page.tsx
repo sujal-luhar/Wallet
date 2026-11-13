@@ -52,13 +52,7 @@ function SigninForm() {
   };
 
   return (
-    <AuthCardWrapper title="Sign In">
-      {error && (
-        <div className="mb-4 p-3 text-sm text-red-600 bg-red-50 border border-red-200">
-          {error}
-        </div>
-      )}
-
+    <AuthCardWrapper title="Sign In" error={error}>
       <form onSubmit={handleSignin} className="space-y-4">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">

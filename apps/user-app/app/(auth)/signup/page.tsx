@@ -35,7 +35,7 @@ function SignupSuccessView({
         type="button"
         onClick={onResend}
         disabled={resendLoading}
-        className="w-full font-small mb-4 text-gray-400 underline disabled:opacity-50 text-sm cursor-pointer"
+        className="w-full mb-4 text-gray-400 underline disabled:opacity-50 text-sm cursor-pointer"
       >
         {resendLoading
           ? "Sending new link......"
@@ -147,13 +147,7 @@ export default function SignupPage() {
   };
 
   return (
-    <AuthCardWrapper title="Create an Account">
-      {error && (
-        <div className="mb-4 p-3 text-sm text-red-600 bg-red-50 border border-red-200">
-          {error}
-        </div>
-      )}
-
+    <AuthCardWrapper title="Create an Account" error={error}>
       {successMessage ? (
         <SignupSuccessView
           successMessage={successMessage}
