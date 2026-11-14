@@ -8,8 +8,17 @@ import {
 } from "@wallet/ui/components/ui/card";
 import { Input } from "@wallet/ui/components/ui/input";
 import { handleMerchantOnboarding } from "../../actions/merchant.onboarding.action";
+import getMerchantProfile from "@/dal/merchant.profile.dal";
+import { redirect } from "next/navigation";
 
-export default function MerchantOnboardingPage() {
+export default async function MerchantOnboardingPage() {
+  const profile = await getMerchantProfile();
+
+  // If merchant already has a shop name set, block re-entering onboarding
+  if (profile?.businessName) {
+    redirect("/dashboard");
+  }
+  
   return (
     <div className="flex min-h-screen items-center justify-center p-4">
       <Card className="w-full max-w-md">

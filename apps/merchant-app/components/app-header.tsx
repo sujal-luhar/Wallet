@@ -11,12 +11,13 @@ const USER_APP_URL =
 
 export function AppHeader({ currentApp }: { currentApp: "user" | "merchant" }) {
   const { data: session } = useSession();
+  const callbackUrl = `${USER_APP_URL}/signin`
 
   return (
     <Header
       currentApp={currentApp}
       user={session?.user}
-      onSignOut={() => signOut({ callbackUrl: `${USER_APP_URL}/signin` })}
+      onSignOut={() => signOut({ callbackUrl })}
       onSwitchAppMode={switchAppModeAction}
     />
   );

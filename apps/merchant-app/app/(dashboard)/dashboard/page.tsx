@@ -15,6 +15,18 @@ export default async function MerchantDashboard() {
   return (
     <div className="space-y-6">
       {/* Summary Cards Grid */}
+      <div className="inline-flex items-center gap-3 px-4 py-2.5 rounded-xl bg-white border border-gray-200 shadow-xs">
+        <div className="flex h-2 w-2 relative">
+          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75"></span>
+          <span className="relative inline-flex rounded-full h-2 w-2 bg-orange-600"></span>
+        </div>
+        <div className="flex flex-col">
+          <span className="text-[10px] font-semibold uppercase tracking-widest text-gray-400">Store Name</span>
+          <h1 className="text-lg font-bold tracking-tight text-gray-900 truncate max-w-[400px]" title={data.businessName}>
+            {data.businessName}
+          </h1>
+        </div>
+      </div>
       <div className="grid gap-4 md:grid-cols-3">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
