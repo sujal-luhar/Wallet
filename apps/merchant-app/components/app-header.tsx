@@ -10,13 +10,17 @@ const USER_APP_URL =
 
 export function AppHeader({ currentApp }: { currentApp: "user" | "merchant" }) {
   const { data: session } = useSession();
-  const callbackUrl = `${USER_APP_URL}/signin`;
+
+  const handleSignOut = async () => {
+    await signOut({ redirect: false }); // clears the session cookie
+    window.location.href = `${USER_APP_URL}/signin`; // hard navigation
+  };
 
   return (
     <Header
       currentApp={currentApp}
       user={session?.user}
-      onSignOut={() => signOut({ callbackUrl })}
+      onSignOut={handleSignOut}
       onSwitchAppMode={switchAppModeAction}
     />
   );
