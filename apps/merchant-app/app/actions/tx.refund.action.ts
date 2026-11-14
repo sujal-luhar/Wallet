@@ -2,13 +2,26 @@
 
 import { db } from "@wallet/db";
 import { revalidatePath } from "next/cache";
-import { resolveWalletAndAuth, assertValidRefundTarget } from "@wallet/auth/actions/tx.action-guard";
-import { safeAction, refundSchema, RefundInput, TxActionResponse } from "@wallet/common";
+import {
+  resolveWalletAndAuth,
+  assertValidRefundTarget,
+} from "@wallet/auth/actions/tx.action-guard";
+import {
+  safeAction,
+  refundSchema,
+  RefundInput,
+  TxActionResponse,
+} from "@wallet/common";
 
 // Pure business logic function (accepts validated data)
-async function executeRefund({ transactionId }: RefundInput): Promise<TxActionResponse> {
+async function executeRefund({
+  transactionId,
+}: RefundInput): Promise<TxActionResponse> {
   const { walletId: merchantWalletId } = await resolveWalletAndAuth(true);
-  const { amount, sourceWalletId } = await assertValidRefundTarget(transactionId, merchantWalletId);
+  const { amount, sourceWalletId } = await assertValidRefundTarget(
+    transactionId,
+    merchantWalletId,
+  );
 
   await db.$transaction(async (dbTx) => {
     const wallets = await dbTx.$queryRaw<Array<{ balance: bigint }>>`
@@ -28,7 +41,9 @@ async function executeRefund({ transactionId }: RefundInput): Promise<TxActionRe
     });
 
     if (updateResult.count === 0) {
-      throw new Error("Transaction has already been refunded or is no longer eligible.");
+      throw new Error(
+        "Transaction has already been refunded or is no longer eligible.",
+      );
     }
 
     await dbTx.wallet.update({
@@ -44,7 +59,7 @@ async function executeRefund({ transactionId }: RefundInput): Promise<TxActionRe
 
   revalidatePath("/transactions");
   revalidatePath("/dashboard");
-  
+
   return { success: true, id: transactionId };
 }
 

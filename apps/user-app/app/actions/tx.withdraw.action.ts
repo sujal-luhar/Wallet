@@ -1,8 +1,16 @@
 "use server";
 
 import { db } from "@wallet/db";
-import { resolveWalletAndAuth, checkIdempotency } from "@wallet/auth/actions/tx.action-guard";
-import { safeAction, withdrawSchema, WithdrawInput, TxActionResponse } from "@wallet/common";
+import {
+  resolveWalletAndAuth,
+  checkIdempotency,
+} from "@wallet/auth/actions/tx.action-guard";
+import {
+  safeAction,
+  withdrawSchema,
+  WithdrawInput,
+  TxActionResponse,
+} from "@wallet/common";
 
 async function executeWithdrawal({
   amount,
@@ -78,4 +86,7 @@ async function executeWithdrawal({
   return { success: true, id: transaction.id };
 }
 
-export const initiateWithdrawalAction = safeAction(withdrawSchema, executeWithdrawal);
+export const initiateWithdrawalAction = safeAction(
+  withdrawSchema,
+  executeWithdrawal,
+);

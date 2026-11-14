@@ -21,8 +21,13 @@ export default async function MerchantDashboard() {
           <span className="relative inline-flex rounded-full h-2 w-2 bg-orange-600"></span>
         </div>
         <div className="flex flex-col">
-          <span className="text-[10px] font-semibold uppercase tracking-widest text-gray-400">Store Name</span>
-          <h1 className="text-lg font-bold tracking-tight text-gray-900 truncate max-w-[400px]" title={data.businessName}>
+          <span className="text-[10px] font-semibold uppercase tracking-widest text-gray-400">
+            Store Name
+          </span>
+          <h1
+            className="text-lg font-bold tracking-tight text-gray-900 truncate max-w-[400px]"
+            title={data.businessName}
+          >
             {data.businessName}
           </h1>
         </div>

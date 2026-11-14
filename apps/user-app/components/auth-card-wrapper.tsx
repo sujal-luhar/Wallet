@@ -4,7 +4,11 @@ interface AuthCardWrapperProps {
   children: React.ReactNode;
 }
 
-export function AuthCardWrapper({ title, error, children }: AuthCardWrapperProps) {
+export function AuthCardWrapper({
+  title,
+  error,
+  children,
+}: AuthCardWrapperProps) {
   return (
     <div className="flex min-h-screen items-center justify-center px-4 py-12">
       <div className="w-full max-w-md p-8 shadow-sm border border-gray-200 bg-white">

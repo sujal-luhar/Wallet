@@ -37,7 +37,10 @@ export async function checkIdempotency(idempotencyKey?: string) {
 }
 
 // 3. Shared Refund Validation Guard (Specific to tx.refund.action.ts)
-export async function assertValidRefundTarget(transactionId: string, merchantWalletId: string) {
+export async function assertValidRefundTarget(
+  transactionId: string,
+  merchantWalletId: string,
+) {
   const tx = await db.transaction.findUnique({
     where: { id: transactionId },
     select: {

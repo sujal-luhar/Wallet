@@ -1,8 +1,16 @@
 "use server";
 
 import { db } from "@wallet/db";
-import { resolveWalletAndAuth, checkIdempotency } from "@wallet/auth/actions/tx.action-guard";
-import { safeAction, depositSchema, DepositInput, TxActionResponse } from "@wallet/common";
+import {
+  resolveWalletAndAuth,
+  checkIdempotency,
+} from "@wallet/auth/actions/tx.action-guard";
+import {
+  safeAction,
+  depositSchema,
+  DepositInput,
+  TxActionResponse,
+} from "@wallet/common";
 
 async function executeDeposit({
   amount,

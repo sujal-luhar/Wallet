@@ -19,7 +19,8 @@ export async function GET(req: NextRequest) {
   const transaction = await db.transaction.findFirst({
     where: {
       id: txId,
-      OR: [   // The OR covers every transaction type: Deposit, Withdrawal, P2P
+      OR: [
+        // The OR covers every transaction type: Deposit, Withdrawal, P2P
         { sourceWallet: { userId: session.user.id } },
         { destinationWallet: { userId: session.user.id } },
       ],
@@ -40,11 +41,9 @@ export async function GET(req: NextRequest) {
     );
   }
 
-  return NextResponse.json(
-    {
-      status: transaction.status,
-      type: transaction.type,
-      amount: Number(transaction.amount) / 100,
-    }
-  );
+  return NextResponse.json({
+    status: transaction.status,
+    type: transaction.type,
+    amount: Number(transaction.amount) / 100,
+  });
 }

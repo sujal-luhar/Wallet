@@ -1,8 +1,16 @@
 "use server";
 
 import { db } from "@wallet/db";
-import { resolveWalletAndAuth, checkIdempotency } from "@wallet/auth/actions/tx.action-guard";
-import { safeAction, p2pTransferSchema, P2PTransferInput, TxActionResponse } from "@wallet/common";
+import {
+  resolveWalletAndAuth,
+  checkIdempotency,
+} from "@wallet/auth/actions/tx.action-guard";
+import {
+  safeAction,
+  p2pTransferSchema,
+  P2PTransferInput,
+  TxActionResponse,
+} from "@wallet/common";
 
 async function executeP2PTransfer({
   recipientPhone,
@@ -85,4 +93,7 @@ async function executeP2PTransfer({
   return { success: true, id: transaction.id };
 }
 
-export const initP2PTransferAction = safeAction(p2pTransferSchema, executeP2PTransfer);
+export const initP2PTransferAction = safeAction(
+  p2pTransferSchema,
+  executeP2PTransfer,
+);

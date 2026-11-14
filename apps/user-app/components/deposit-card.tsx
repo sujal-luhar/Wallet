@@ -91,10 +91,11 @@ export default function DepositCard() {
           ].map((method) => (
             <div
               key={method.id}
-              className={`flex items-center justify-between border p-3 cursor-pointer rounded-none transition-colors ${paymentMethod === method.id
+              className={`flex items-center justify-between border p-3 cursor-pointer rounded-none transition-colors ${
+                paymentMethod === method.id
                   ? "border-primary bg-primary/5"
                   : "hover:bg-muted/50"
-                }`}
+              }`}
               onClick={() => !isPending && setPaymentMethod(method.id)}
             >
               <div className="flex items-center gap-3">

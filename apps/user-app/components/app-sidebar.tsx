@@ -2,13 +2,11 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { LayoutDashboard, ArrowDownLeft, Send, History } from "lucide-react";
 import {
-  LayoutDashboard,
-  ArrowDownLeft,
-  Send,
-  History,
-} from "lucide-react";
-import { AppSidebar as SharedSidebar, type NavItem } from "@wallet/ui/components/app-sidebar";
+  AppSidebar as SharedSidebar,
+  type NavItem,
+} from "@wallet/ui/components/app-sidebar";
 
 const navigation: NavItem[] = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },

@@ -32,8 +32,6 @@ export const p2pTransferSchema = z.object({
   idempotencyKey: z.string().min(1, "Idempotency key is required."),
 });
 
-
-
 export type RefundInput = z.infer<typeof refundSchema>;
 export type SettleToBankInput = z.infer<typeof settleToBankSchema>;
 export type DepositInput = z.infer<typeof depositSchema>;

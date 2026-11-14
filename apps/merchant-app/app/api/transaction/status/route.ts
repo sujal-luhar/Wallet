@@ -1,17 +1,16 @@
 // apps/merchant-app/app/api/transaction/status/route.ts
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { db } from "@wallet/db";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@wallet/auth";
 
-export async function GET(req: Request) {
+export async function GET(req: NextRequest) {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { searchParams } = new URL(req.url);
-  const txId = searchParams.get("txId");
+  const txId = req.nextUrl.searchParams.get("txId");
 
   if (!txId) {
     return NextResponse.json({ error: "Missing txId" }, { status: 400 });
@@ -19,6 +18,11 @@ export async function GET(req: Request) {
 
   const tx = await db.transaction.findUnique({
     where: { id: txId },
+    select: {
+      status: true,
+      amount: true,
+      type: true,
+    },
   });
 
   if (!tx) {

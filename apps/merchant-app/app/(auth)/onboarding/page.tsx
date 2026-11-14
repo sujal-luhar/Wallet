@@ -18,7 +18,7 @@ export default async function MerchantOnboardingPage() {
   if (profile?.businessName) {
     redirect("/dashboard");
   }
-  
+
   return (
     <div className="flex min-h-screen items-center justify-center p-4">
       <Card className="w-full max-w-md">

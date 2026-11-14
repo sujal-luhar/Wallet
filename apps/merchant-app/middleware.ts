@@ -14,7 +14,8 @@ export async function middleware(req: NextRequest) {
 
   // Unauthenticated users cannot access dashboard or merchant onboarding
   if ((isProtectedPage || isOnboardingPage) && !token) {
-    const userAppUrl = process.env.NEXT_PUBLIC_USER_APP_URL || "http://localhost:3002";
+    const userAppUrl =
+      process.env.NEXT_PUBLIC_USER_APP_URL || "http://localhost:3002";
     return NextResponse.redirect(new URL("/signin", userAppUrl));
   }
 

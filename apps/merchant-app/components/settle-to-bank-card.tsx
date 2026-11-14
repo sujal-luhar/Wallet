@@ -96,7 +96,7 @@ export function SettleToBankCard({ availableBalance }: SettleToBankCardProps) {
   const handleReset = () => {
     setTxStatus("IDLE");
     setActiveTxId(null);
-  };  
+  };
 
   return (
     <Card className="md:col-span-3">

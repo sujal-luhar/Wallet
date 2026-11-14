@@ -55,11 +55,11 @@ export default function TransactionsClient({
     setLoadingId(transactionId);
     startTransition(async () => {
       const result = await refundTransactionAction({ transactionId });
-      
+
       if (!result.success) {
         setError(result.error);
       }
-      
+
       setLoadingId(null);
     });
   };

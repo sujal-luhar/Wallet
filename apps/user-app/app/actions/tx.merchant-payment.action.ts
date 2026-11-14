@@ -1,8 +1,16 @@
 "use server";
 
 import { db } from "@wallet/db";
-import { resolveWalletAndAuth, checkIdempotency } from "@wallet/auth/actions/tx.action-guard";
-import { safeAction, merchantPaymentSchema, MerchantPaymentInput, TxActionResponse } from "@wallet/common";
+import {
+  resolveWalletAndAuth,
+  checkIdempotency,
+} from "@wallet/auth/actions/tx.action-guard";
+import {
+  safeAction,
+  merchantPaymentSchema,
+  MerchantPaymentInput,
+  TxActionResponse,
+} from "@wallet/common";
 
 async function executeMerchantPayment({
   merchantId,
@@ -87,4 +95,7 @@ async function executeMerchantPayment({
   return { success: true, id: transaction.id };
 }
 
-export const initMerchantPaymentAction = safeAction(merchantPaymentSchema, executeMerchantPayment);
+export const initMerchantPaymentAction = safeAction(
+  merchantPaymentSchema,
+  executeMerchantPayment,
+);

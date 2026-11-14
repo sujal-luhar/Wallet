@@ -2,10 +2,21 @@
 
 import { db } from "@wallet/db";
 import { revalidatePath } from "next/cache";
-import { resolveWalletAndAuth, checkIdempotency } from "@wallet/auth/actions/tx.action-guard";
-import { safeAction, settleToBankSchema, SettleToBankInput, TxActionResponse } from "@wallet/common";
+import {
+  resolveWalletAndAuth,
+  checkIdempotency,
+} from "@wallet/auth/actions/tx.action-guard";
+import {
+  safeAction,
+  settleToBankSchema,
+  SettleToBankInput,
+  TxActionResponse,
+} from "@wallet/common";
 
-async function executeSettleToBank({ amount, idempotencyKey }: SettleToBankInput): Promise<TxActionResponse> {
+async function executeSettleToBank({
+  amount,
+  idempotencyKey,
+}: SettleToBankInput): Promise<TxActionResponse> {
   const { walletId } = await resolveWalletAndAuth(true);
   const amountCents = BigInt(Math.round(amount * 100));
 
@@ -49,7 +60,8 @@ async function executeSettleToBank({ amount, idempotencyKey }: SettleToBankInput
     transactionId = newTx.id;
   });
 
-  const mockBankUrl = process.env.NEXT_PUBLIC_MOCK_BANK_URL || "http://localhost:3001";
+  const mockBankUrl =
+    process.env.NEXT_PUBLIC_MOCK_BANK_URL || "http://localhost:3001";
   fetch(`${mockBankUrl}/mock-bank/payout`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -62,8 +74,11 @@ async function executeSettleToBank({ amount, idempotencyKey }: SettleToBankInput
 
   revalidatePath("/dashboard");
   revalidatePath("/settlements");
-  
+
   return { success: true, id: transactionId };
 }
 
-export const handleSettleToBank = safeAction(settleToBankSchema, executeSettleToBank);
+export const handleSettleToBank = safeAction(
+  settleToBankSchema,
+  executeSettleToBank,
+);

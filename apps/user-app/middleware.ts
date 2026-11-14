@@ -44,6 +44,6 @@ export const config = {
 };
 
 // `/verify-email` intentionally left open
-// It should remain publicly accessible (do not block logged-in or 
-// logged-out users from /verify-email since a user might click the 
+// It should remain publicly accessible (do not block logged-in or
+// logged-out users from /verify-email since a user might click the
 // email link while logged in or out)

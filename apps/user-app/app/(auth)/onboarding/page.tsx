@@ -5,7 +5,7 @@ import { OnboardingForm } from "@/components/onboarding-form";
 
 export default async function OnboardingPage() {
   const session = await getServerSession();
-  
+
   if (!session?.user?.email) {
     redirect("/signin");
   }

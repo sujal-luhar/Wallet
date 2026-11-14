@@ -3,7 +3,10 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { LayoutDashboard, Landmark, History } from "lucide-react";
-import { AppSidebar as SharedSidebar, type NavItem } from "@wallet/ui/components/app-sidebar";
+import {
+  AppSidebar as SharedSidebar,
+  type NavItem,
+} from "@wallet/ui/components/app-sidebar";
 
 const navigation: NavItem[] = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },

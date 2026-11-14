@@ -3,7 +3,7 @@ import { Geist, Geist_Mono, Inter } from "next/font/google";
 import "./globals.css";
 import { cn } from "@wallet/ui/lib/utils";
 import { Providers } from "@/components/providers";
-import BfcacheGuard from "@wallet/ui/components/bfcache-guard"; 
+import BfcacheGuard from "@wallet/ui/components/bfcache-guard";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 
