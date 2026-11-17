@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import {
   Send,
@@ -46,6 +46,33 @@ export default function P2PTransferCard({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const attempt = useRef<{
+    key: string;
+    type: "p2p" | "merchant";
+    target: string;
+    amount: number;
+  } | null>(null);
+
+  const getKey = () => {
+    const target = transferType === "p2p" ? recipientPhone : merchantId;
+    const a = attempt.current;
+    if (
+      !a ||
+      a.type !== transferType ||
+      a.target !== target ||
+      a.amount !== amount
+    ) {
+      const prefix = transferType === "p2p" ? "p2p" : "merchant";
+      attempt.current = {
+        key: `${prefix}_${crypto.randomUUID()}`,
+        type: transferType,
+        target,
+        amount,
+      };
+    }
+    return attempt.current!.key;
+  };
+
   const handleSelectContact = (payee: RecentPayee) => {
     setSelectedContactId(payee.id);
     setRecipientPhone(payee.phone);
@@ -69,7 +96,7 @@ export default function P2PTransferCard({
 
     setIsSubmitting(true);
 
-    const idempotencyKey = `p2p_${crypto.randomUUID()}`;
+    const idempotencyKey = getKey();
 
     let res;
     if (transferType === "p2p") {
@@ -89,6 +116,7 @@ export default function P2PTransferCard({
     setIsSubmitting(false);
 
     if (!res.success) {
+      attempt.current = null; // definitive rejection → next try gets a fresh key
       setError(res.error);
       return;
     }

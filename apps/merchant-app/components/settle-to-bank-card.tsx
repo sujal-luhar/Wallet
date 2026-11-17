@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition, useEffect } from "react";
+import { useState, useTransition, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import {
   Card,
@@ -28,6 +28,19 @@ export function SettleToBankCard({ availableBalance }: SettleToBankCardProps) {
   const [txStatus, setTxStatus] = useState<
     "IDLE" | "PROCESSING" | "SUCCESS" | "FAILED"
   >("IDLE");
+
+  const attempt = useRef<{ key: string; amount: number } | null>(null);
+
+  const getKey = (amt: number) => {
+    const a = attempt.current;
+    if (!a || a.amount !== amt) {
+      attempt.current = {
+        key: `settle_${crypto.randomUUID()}`,
+        amount: amt,
+      };
+    }
+    return attempt.current!.key;
+  };
 
   // Polling effect matching user-app pattern
   useEffect(() => {
@@ -72,16 +85,16 @@ export function SettleToBankCard({ availableBalance }: SettleToBankCardProps) {
 
     const formData = new FormData(e.currentTarget);
     const rawAmount = formData.get("amount") as string;
-    const amount = Number(rawAmount);
-    const idempotencyKey = `settle_${crypto.randomUUID()}`;
+    const numAmount = Number(rawAmount);
 
     startTransition(async () => {
       const result = await handleSettleToBank({
-        amount,
-        idempotencyKey,
+        amount: numAmount,
+        idempotencyKey: getKey(numAmount),
       });
 
       if (!result.success) {
+        attempt.current = null; // definitive rejection → next try gets a fresh key
         setError(result.error);
         setTxStatus("IDLE");
         return;
@@ -94,6 +107,7 @@ export function SettleToBankCard({ availableBalance }: SettleToBankCardProps) {
   };
 
   const handleReset = () => {
+    attempt.current = null;
     setTxStatus("IDLE");
     setActiveTxId(null);
   };

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useRef, useState, useTransition } from "react";
 import { Label } from "@wallet/ui/components/ui/label";
 import { ShieldCheck, Building2, CheckCircle2 } from "lucide-react";
 import { initiateWithdrawalAction } from "@/app/actions/tx.withdraw.action";
@@ -24,6 +24,19 @@ export default function WithdrawCard({ balance }: WithdrawCardProps) {
     { label: "MAX", value: balance },
   ];
 
+  const attempt = useRef<{ key: string; amount: number } | null>(null);
+
+  const getKey = () => {
+    const a = attempt.current;
+    if (!a || a.amount !== amount) {
+      attempt.current = {
+        key: `withdraw_${crypto.randomUUID()}`,
+        amount,
+      };
+    }
+    return attempt.current!.key;
+  };
+
   const handleWithdraw = async (e: React.FormEvent) => {
     e.preventDefault();
     if (amount < 100) return setError("Minimum withdrawal amount is ₹100.");
@@ -33,11 +46,13 @@ export default function WithdrawCard({ balance }: WithdrawCardProps) {
     setError(null);
 
     startTransition(async () => {
-      const idempotencyKey = `withdraw_${crypto.randomUUID()}`;
-
-      const res = await initiateWithdrawalAction({ amount, idempotencyKey });
+      const res = await initiateWithdrawalAction({
+        amount,
+        idempotencyKey: getKey(),
+      });
 
       if (!res.success) {
+        attempt.current = null; // definitive rejection → next try gets a fresh key
         setError(res.error);
         return;
       }

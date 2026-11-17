@@ -1,6 +1,6 @@
 "use server";
 
-import { db } from "@wallet/db";
+import { db, Prisma } from "@wallet/db";
 import {
   resolveWalletAndAuth,
   checkIdempotency,
@@ -17,16 +17,10 @@ async function executeMerchantPayment({
   amount,
   idempotencyKey,
 }: MerchantPaymentInput): Promise<TxActionResponse> {
-  const amountInPaise = BigInt(amount * 100);
   const { walletId: senderWalletId } = await resolveWalletAndAuth(false);
+  const amountPaise = BigInt(Math.round(amount * 100));
 
-  // 1. Idempotency Check
-  const existingTx = await checkIdempotency(idempotencyKey);
-  if (existingTx) {
-    return { success: true, id: existingTx.id };
-  }
-
-  // 2. Find Merchant Wallet
+  // Find Merchant Wallet
   // Search MerchantProfile by ID, or by the User's phone linked to the profile
   const merchantProfile = await db.merchantProfile.findFirst({
     where: {
@@ -47,52 +41,84 @@ async function executeMerchantPayment({
     );
   }
 
-  // 3. Atomic Prisma Transaction
-  const transaction = await db.$transaction(async (tx) => {
-    // 1. Lock and fetch sender wallet using raw SQL FOR UPDATE
-    const senderWallets = await tx.$queryRaw<Array<{ balance: bigint }>>`
-    SELECT balance FROM "Wallet" 
-    WHERE id = ${senderWalletId} 
-    FOR UPDATE;
-  `;
+  const resume = (tx: NonNullable<Awaited<ReturnType<typeof checkIdempotency>>>) => {
+    // Same key must mean same intent, and must belong to this wallet.
+    const sameIntent =
+      tx.type === "MERCHANT_PAYMENT" &&
+      tx.sourceWalletId === senderWalletId &&
+      tx.destinationWalletId === destinationWallet.id &&
+      tx.amount === amountPaise;
 
-    const currentSenderWallet = senderWallets[0];
+    // Deliberately generic: don't reveal that the key exists for someone else.
+    if (!sameIntent) throw new Error("Invalid request. Please start a new payment.");
 
-    if (!currentSenderWallet || currentSenderWallet.balance < amountInPaise) {
-      throw new Error("Insufficient wallet balance.");
+    if (tx.status === "SUCCESS" || tx.status === "PENDING") {
+      return { success: true as const, id: tx.id };
     }
 
-    // 2. Deduct from Sender User Wallet
-    await tx.wallet.update({
-      where: { id: senderWalletId },
-      data: {
-        balance: { decrement: amountInPaise },
-      },
+    throw new Error(
+      "This payment attempt has already concluded. Please start a new payment.",
+    );
+  };
+
+  const existing = await checkIdempotency(idempotencyKey);
+  if (existing) return resume(existing);
+
+  try {
+    // Atomic Prisma Transaction
+    const transaction = await db.$transaction(async (tx) => {
+      // 1. Lock and fetch sender wallet using raw SQL FOR UPDATE
+      const senderWallets = await tx.$queryRaw<Array<{ balance: bigint }>>`
+        SELECT balance FROM "Wallet" 
+        WHERE id = ${senderWalletId} 
+        FOR UPDATE;
+      `;
+
+      const currentSenderWallet = senderWallets[0];
+
+      if (!currentSenderWallet || currentSenderWallet.balance < amountPaise) {
+        throw new Error("Insufficient wallet balance.");
+      }
+
+      // 2. Deduct from Sender User Wallet
+      await tx.wallet.update({
+        where: { id: senderWalletId },
+        data: {
+          balance: { decrement: amountPaise },
+        },
+      });
+
+      // 3. Credit to Recipient Merchant Wallet
+      await tx.wallet.update({
+        where: { id: destinationWallet.id },
+        data: {
+          balance: { increment: amountPaise },
+        },
+      });
+
+      // 4. Create Transaction Record
+      return await tx.transaction.create({
+        data: {
+          amount: amountPaise,
+          type: "MERCHANT_PAYMENT",
+          status: "SUCCESS",
+          idempotencyKey,
+          sourceWalletId: senderWalletId,
+          destinationWalletId: destinationWallet.id,
+        },
+        select: { id: true },
+      });
     });
 
-    // 3. Credit to Recipient Merchant Wallet
-    await tx.wallet.update({
-      where: { id: destinationWallet.id },
-      data: {
-        balance: { increment: amountInPaise },
-      },
-    });
-
-    // 4. Create Transaction Record
-    return await tx.transaction.create({
-      data: {
-        amount: amountInPaise,
-        type: "MERCHANT_PAYMENT",
-        status: "SUCCESS",
-        idempotencyKey,
-        sourceWalletId: senderWalletId,
-        destinationWalletId: destinationWallet.id,
-      },
-      select: { id: true },
-    });
-  });
-
-  return { success: true, id: transaction.id };
+    return { success: true, id: transaction.id };
+  } catch (e) {
+    // Lost the race against a concurrent request with the same key.
+    if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2002") {
+      const winner = await checkIdempotency(idempotencyKey);
+      if (winner) return resume(winner);
+    }
+    throw e;
+  }
 }
 
 export const initMerchantPaymentAction = safeAction(
