@@ -4,27 +4,21 @@ import { getToken } from "next-auth/jwt";
 
 export async function middleware(req: NextRequest) {
   const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
-  const { pathname } = req.nextUrl;
+  const { pathname, searchParams } = req.nextUrl;
 
-  const isAuthPage =
-    pathname.startsWith("/signin") || pathname.startsWith("/signup");
+  const isAuthPage = pathname === "/signin" || pathname === "/signup";
 
-  const isProtectedPage =
-    pathname.startsWith("/dashboard") ||
-    pathname.startsWith("/transactions") ||
-    pathname.startsWith("/funds") ||
-    pathname.startsWith("/p2ptransfer") ||
-    pathname.startsWith("/payment-success") ||
-    pathname.startsWith("/onboarding");
-
-  // Logged-in users shouldn't see signin/signup
-  if (isAuthPage && token) {
-    return NextResponse.redirect(new URL("/dashboard", req.url));
+  if (isAuthPage) {
+    return token
+      ? NextResponse.redirect(new URL("/dashboard", req.url))
+      : NextResponse.next();
   }
 
-  // Unauthenticated users cannot access protected routes or onboarding
-  if (isProtectedPage && !token) {
-    return NextResponse.redirect(new URL("/signin", req.url));
+  // Everything else the matcher lets through is protected
+  if (!token) {
+    const url = new URL("/signin", req.url);
+    url.searchParams.set("callbackUrl", pathname + searchParams);
+    return NextResponse.redirect(url);
   }
 
   return NextResponse.next();
@@ -37,7 +31,7 @@ export const config = {
     "/funds/:path*",
     "/p2ptransfer/:path*",
     "/payment-success/:path*",
-    "/onboarding",
+    "/onboarding/:path*",
     "/signin",
     "/signup",
   ],

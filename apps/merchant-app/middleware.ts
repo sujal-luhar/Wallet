@@ -4,19 +4,14 @@ import { getToken } from "next-auth/jwt";
 
 export async function middleware(req: NextRequest) {
   const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
-  const { pathname } = req.nextUrl;
 
-  const isOnboardingPage = pathname.startsWith("/onboarding");
-  const isProtectedPage =
-    pathname.startsWith("/dashboard") ||
-    pathname.startsWith("/transactions") ||
-    pathname.startsWith("/settlements");
-
-  // Unauthenticated users cannot access dashboard or merchant onboarding
-  if ((isProtectedPage || isOnboardingPage) && !token) {
+  if (!token) {
     const userAppUrl =
       process.env.NEXT_PUBLIC_USER_APP_URL || "http://localhost:3002";
-    return NextResponse.redirect(new URL("/signin", userAppUrl));
+    const url = new URL("/signin", userAppUrl);
+    // Absolute URL, because signin lives on a different origin (user-app)
+    url.searchParams.set("callbackUrl", req.nextUrl.href);
+    return NextResponse.redirect(url);
   }
 
   return NextResponse.next();
@@ -27,6 +22,6 @@ export const config = {
     "/dashboard/:path*",
     "/transactions/:path*",
     "/settlements/:path*",
-    "/onboarding",
+    "/onboarding/:path*",
   ],
 };
