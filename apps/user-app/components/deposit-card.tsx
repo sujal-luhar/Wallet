@@ -6,7 +6,7 @@ import {
   RadioGroupItem,
 } from "@wallet/ui/components/ui/radio-group";
 import { ShieldCheck } from "lucide-react";
-import { useState, useTransition } from "react";
+import { useRef, useState, useTransition } from "react";
 import { initDepositAction } from "@/app/actions/tx.deposit.action";
 import { AmountActionCardWrapper } from "@/components/amount-action-card-wrapper";
 
@@ -21,21 +21,29 @@ export default function DepositCard() {
     value: v,
   }));
 
+  const attempt = useRef<{ key: string; amount: number; method: string } | null>(null);
+
+  const getKey = () => {
+    const a = attempt.current;
+    if (!a || a.amount !== amount || a.method !== paymentMethod) {
+      attempt.current = {
+        key: `deposit_${crypto.randomUUID()}`,
+        amount,
+        method: paymentMethod,
+      };
+    }
+    return attempt.current!.key;
+  };
+
   const handleDeposit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (amount < 100) return setError("Minimum deposit amount is ₹100");
 
     setError(null);
     startTransition(async () => {
-      const idempotencyKey = `deposit_${crypto.randomUUID()}`;
-
-      const res = await initDepositAction({
-        amount,
-        paymentMethod,
-        idempotencyKey,
-      });
-
+      const res = await initDepositAction({ amount, paymentMethod, idempotencyKey: getKey() });
       if (!res.success) {
+        attempt.current = null; // definitive rejection → next try gets a fresh key
         setError(res.error);
         return;
       }
@@ -91,11 +99,10 @@ export default function DepositCard() {
           ].map((method) => (
             <div
               key={method.id}
-              className={`flex items-center justify-between border p-3 cursor-pointer rounded-none transition-colors ${
-                paymentMethod === method.id
-                  ? "border-primary bg-primary/5"
-                  : "hover:bg-muted/50"
-              }`}
+              className={`flex items-center justify-between border p-3 cursor-pointer rounded-none transition-colors ${paymentMethod === method.id
+                ? "border-primary bg-primary/5"
+                : "hover:bg-muted/50"
+                }`}
               onClick={() => !isPending && setPaymentMethod(method.id)}
             >
               <div className="flex items-center gap-3">

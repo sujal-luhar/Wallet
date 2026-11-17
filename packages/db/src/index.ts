@@ -28,4 +28,4 @@ if (process.env.NODE_ENV !== "production") {
   globalForPrisma.prismaGlobal = db as unknown as ExtendedPrismaClient;
 }
 
-export * from "@prisma/client";
+export { Prisma } from "@prisma/client";

@@ -27,13 +27,18 @@ export async function resolveWalletAndAuth(isMerchant = false) {
 }
 
 // 2. Shared Idempotency Lookups
-export async function checkIdempotency(idempotencyKey?: string) {
-  if (!idempotencyKey) return null;
-  const existingTx = await db.transaction.findUnique({
+export async function checkIdempotency(idempotencyKey: string) {
+  return db.transaction.findUnique({
     where: { idempotencyKey },
-    select: { id: true, status: true },
+    select: {
+      id: true,
+      status: true,
+      type: true,
+      amount: true,
+      sourceWalletId: true,
+      destinationWalletId: true,
+    },
   });
-  return existingTx;
 }
 
 // 3. Shared Refund Validation Guard (Specific to tx.refund.action.ts)

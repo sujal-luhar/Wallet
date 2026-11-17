@@ -159,25 +159,29 @@ app.post("/mock-bank/process", async (req, res) => {
     // 2. Simulate 3-second bank processing delay before updating DB
     setTimeout(async () => {
       try {
-        const tx = await db.transaction.findUnique({ where: { id: txId } });
+        // Solved check-then-act race
+        const credited = await db.$transaction(async (prisma) => {
+          const { count } = await prisma.transaction.updateMany({
+            where: { id: txId, status: "PENDING", type: "DEPOSIT" },
+            data: { status: "SUCCESS" },
+          });
 
-        // Ensure transaction exists and hasn't been processed already
-        if (tx && tx.status === "PENDING" && tx.destinationWalletId) {
-          // Atomic update: Mark SUCCESS + Credit Wallet
-          await db.$transaction([
-            db.transaction.update({
-              where: { id: txId },
-              data: { status: "SUCCESS" },
-            }),
-            db.wallet.update({
-              where: { id: tx.destinationWalletId! },
-              data: {
-                balance: { increment: tx.amount },
-              },
-            }),
-          ]);
-          console.log(`[MockBank] Transaction ${txId} successfully completed!`);
-        }
+          if (count === 0) return false; // already processed (or not a pending deposit)
+
+          const tx = await prisma.transaction.findUniqueOrThrow({
+            where: { id: txId },
+            select: { destinationWalletId: true, amount: true },
+          });
+
+          await prisma.wallet.update({
+            where: { id: tx.destinationWalletId! },
+            data: { balance: { increment: tx.amount } },
+          });
+
+          return true;
+        });
+
+        if (credited) console.log(`[MockBank] Transaction ${txId} completed`);
       } catch (err) {
         console.error(`[MockBank] Error updating transaction ${txId}:`, err);
       }
@@ -185,7 +189,7 @@ app.post("/mock-bank/process", async (req, res) => {
   } else {
     // Handle Failed Payment
     await db.transaction.update({
-      where: { id: String(txId) },
+      where: { id: txId },
       data: { status: "FAILED" },
     });
 
