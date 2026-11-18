@@ -138,7 +138,7 @@ export async function getPaginatedTransactions({
 // -----------------------------------------------------------------------------
 // 4. Dashboard Wrapper
 // -----------------------------------------------------------------------------
-export async function getRecentTransactions(walletId?: string, limit = 5) {
+export async function getRecentTransactions(limit = 5) {
   const { transactions } = await getPaginatedTransactions({ page: 1, limit });
   return transactions;
 }

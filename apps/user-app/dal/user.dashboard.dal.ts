@@ -23,34 +23,6 @@ async function getMonthlyTransactionStats(walletId: string | undefined) {
           maximumFractionDigits: 2,
         });
 
-  // const monthlyReceivedAggregate = await db.transaction.aggregate({
-  //     where: {
-  //         destinationWalletId: walletId,
-  //         createdAt: {
-  //             gte: startOfMonth,
-  //             lt: startOfNextMonth, // safer than lte to capture everything right before next month
-  //         },
-  //         status: "SUCCESS"
-  //     },
-  //     _sum: {
-  //         amount: true,
-  //     }
-  // })
-
-  // const monthlySentAggregate = await db.transaction.aggregate({
-  //     where: {
-  //         sourceWalletId: walletId,
-  //         createdAt: {
-  //             gte: startOfMonth,
-  //             lt: startOfNextMonth, // safer than lte to capture everything right before next month
-  //         },
-  //         status: "SUCCESS"
-  //     },
-  //     _sum: {
-  //         amount: true,
-  //     }
-  // })
-
   const [monthlyReceivedAggregate, monthlySentAggregate] = await Promise.all([
     db.transaction.aggregate({
       where: {
@@ -88,9 +60,10 @@ async function getMonthlyTransactionStats(walletId: string | undefined) {
 
 export default async function getDashboardData() {
   const wallet = await getWalletBalance();
+  const limit = 5
 
   const [recentTransactions, monthlyStats] = await Promise.all([
-    getRecentTransactions(wallet.id),
+    getRecentTransactions(limit),
     getMonthlyTransactionStats(wallet.id),
   ]);
 
