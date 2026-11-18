@@ -1,85 +1,70 @@
 import { NextResponse } from "next/server";
 import bcrypt from "bcrypt";
-import { db } from "@wallet/db";
+import { db, Prisma } from "@wallet/db";
 import { sendVerificationEmail } from "@/lib/mailer";
 import { generateVerificationToken } from "@/lib/tokens";
-
-interface SignUpRequestBody {
-  email?: string;
-  password?: string;
-  name?: string | null;
-  phone?: string;
-}
+import { signUpSchema } from "@wallet/common";
 
 export async function POST(req: Request) {
+  let body: unknown;
   try {
-    const { email, password, name, phone }: SignUpRequestBody =
-      await req.json();
+    body = await req.json();
+  } catch {
+    return NextResponse.json({ message: "Invalid request body." }, { status: 400 });
+  }
 
-    if (!email || !password || !phone) {
-      return NextResponse.json(
-        { message: "Email, phone number, and password are required" },
-        { status: 400 },
-      );
-    }
+  const parsed = signUpSchema.safeParse(body);
+  if (!parsed.success) {
+    return NextResponse.json(
+      { message: parsed.error.issues[0]?.message ?? "Invalid input." },
+      { status: 400 },
+    );
+  }
 
-    // 1. Check if user with given email OR phone already exists
-    const existingUser = await db.user.findFirst({
-      where: {
-        OR: [{ email }, { phone }],
+  const { email, phone, password, name } = parsed.data;
+
+  try {
+    const hashedPassword = await bcrypt.hash(password, 12);
+
+    // Single nested create is already atomic: user + wallet commit together.
+    await db.user.create({
+      data: {
+        email,
+        phone,
+        name: name ?? null,
+        password: hashedPassword,
+        Wallet: {
+          create: {
+            balance: BigInt(0),
+            locked: BigInt(0),
+            currency: "INR"
+          }
+        },
       },
     });
-
-    if (existingUser) {
-      const message =
-        existingUser.email === email
-          ? "User with this email already exists"
-          : "User with this phone number already exists";
-
-      return NextResponse.json({ message }, { status: 409 });
+  } catch (e) {
+    if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2002") {
+      return NextResponse.json(
+        { message: "An account with this email or phone number already exists." },
+        { status: 409 },
+      );
     }
+    console.error("SIGNUP_ERROR:", e);
+    return NextResponse.json({ message: "Internal server error" }, { status: 500 });
+  }
 
-    // 2. Hash password & generate verification token
-    const hashedPassword = await bcrypt.hash(password, 10);
 
-    // 3. Create User, Wallet, and VerificationToken atomically
-    const user = await db.$transaction(async (tx) => {
-      const newUser = await tx.user.create({
-        data: {
-          email,
-          phone,
-          name: name || null,
-          password: hashedPassword,
-          Wallet: {
-            create: {
-              balance: BigInt(0),
-              locked: BigInt(0),
-              currency: "INR",
-            },
-          },
-        },
-      });
-
-      return newUser;
-    });
-
-    // 4. Send verification email
+  try {
     const token = await generateVerificationToken(email);
     await sendVerificationEmail(email, token);
-
+  } catch (e) {
+    console.error("SIGNUP_EMAIL_ERROR:", e);
     return NextResponse.json(
       {
         message:
-          "User registered successfully. Please check your email to verify your account.",
-        userId: user.id,
+          "Account created, but we couldn't send the verification email. Use the resend option below.",
       },
       { status: 201 },
-    );
-  } catch (error) {
-    console.error("SIGNUP_ERROR:", error);
-    return NextResponse.json(
-      { message: "Internal server error" },
-      { status: 500 },
     );
   }
 }

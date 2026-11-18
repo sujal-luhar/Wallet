@@ -44,9 +44,8 @@ function SignupSuccessView({
 
       {resendMessage && (
         <p
-          className={`mb-4 text-xs ${
-            resendMessage.type === "success" ? "text-green-600" : "text-red-600"
-          }`}
+          className={`mb-4 text-xs ${resendMessage.type === "success" ? "text-green-600" : "text-red-600"
+            }`}
         >
           {resendMessage.text}
         </p>
@@ -109,17 +108,16 @@ export default function SignupPage() {
         const data = await res.json();
 
         if (!res.ok) {
-          throw new Error(data.message || "Failed to create account");
+          setError(data.message || "Failed to create account");
+          return;
         }
 
         setSuccessMessage(data.message);
       } catch (err: unknown) {
-        if (err instanceof Error) {
-          setError(err.message);
-        } else {
-          setError("An unexpected error occurred");
-        }
+        console.error(err);
+        setError("Network error. Please try again.");
       }
+
     });
   };
 

@@ -1,5 +1,6 @@
 import { ZodError, ZodType } from "zod";
 import { TxActionResponse } from "../tx.types";
+import { AppError } from "../errors";
 
 // Instead of writting try/catch err logging in each action file repeatedly,
 // we write the common logic right here as `safeAction`
@@ -16,16 +17,19 @@ export function safeAction<TInput, TOutput extends TxActionResponse>(
       const result = await action(parsed);
       return result;
     } catch (err: unknown) {
-      console.error("[Server Action Error]:", err);
 
       if (err instanceof ZodError) {
         const message = err.issues.map((e) => e.message).join(", ");
         return { success: false, error: message };
       }
 
-      const message =
-        err instanceof Error ? err.message : "An unexpected error occurred.";
-      return { success: false, error: message };
+      // Expected, user-facing errors: safe to show
+      if (err instanceof AppError) {
+        return { success: false, error: err.message };
+      }
+
+      console.error("[Server Action Error]:", err);
+      return { success: false, error: "Something went wrong. Please try again." };
     }
   };
 }

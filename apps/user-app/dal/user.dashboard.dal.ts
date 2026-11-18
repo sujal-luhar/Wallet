@@ -1,3 +1,5 @@
+import "server-only";
+
 import { db } from "@wallet/db";
 import { getRecentTransactions } from "./tx.history.dal";
 import { getWalletBalance } from "./user.balance.dal";

@@ -1,3 +1,5 @@
+import "server-only";
+
 import { db } from "@wallet/db";
 import getMerchantProfile from "./merchant.profile.dal";
 

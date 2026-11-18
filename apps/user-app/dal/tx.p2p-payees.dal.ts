@@ -1,3 +1,5 @@
+import "server-only";
+
 import { getWalletBalance } from "@/dal/user.balance.dal";
 import { db } from "@wallet/db";
 

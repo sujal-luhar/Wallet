@@ -6,10 +6,15 @@ import { z } from "zod";
 export const signUpSchema = z.object({
   name: z
     .string()
+    .trim()
     .min(2, { message: "Name must be at least 2 characters long" })
     .max(50, { message: "Name cannot exceed 50 characters" })
     .optional(),
-  email: z.email({ message: "Invalid email address format" }),
+  email: z
+    .string()
+    .trim()
+    .toLowerCase()
+    .pipe(z.email({ message: "Invalid email address format" })),
   phone: z
     .string()
     .regex(
@@ -33,7 +38,11 @@ export const signUpSchema = z.object({
 // 2. Sign In Validation Schema
 // ==========================================
 export const signInSchema = z.object({
-  email: z.email({ message: "Invalid email address format" }),
+  email: z
+    .string()
+    .trim()
+    .toLowerCase()
+    .pipe(z.email({ message: "Invalid email address format" })),
   password: z.string().min(1, { message: "Password is required" }),
 });
 

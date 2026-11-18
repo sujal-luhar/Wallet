@@ -1,3 +1,5 @@
+import "server-only";
+
 import { db } from "@wallet/db";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@wallet/auth";
