@@ -10,6 +10,7 @@ import {
   depositSchema,
   DepositInput,
   TxActionResponse,
+  AppError,
 } from "@wallet/common";
 
 async function executeDeposit({
@@ -27,11 +28,11 @@ async function executeDeposit({
       tx.amount === amountPaise;
 
     // Deliberately generic: don't reveal that the key exists for someone else.
-    if (!sameIntent) throw new Error("Invalid request. Please start a new deposit.");
+    if (!sameIntent) throw new AppError("Invalid request. Please start a new deposit.");
 
     if (tx.status === "PENDING") return { success: true as const, id: tx.id };
 
-    throw new Error(
+    throw new AppError(
       "This deposit attempt has already concluded. Please start a new deposit.",
     );
   };

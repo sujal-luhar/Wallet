@@ -5,7 +5,7 @@ import GoogleProvider from "next-auth/providers/google";
 import bcrypt from "bcrypt";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import { db } from "@wallet/db";
-import { signInSchema } from "@wallet/common";
+import { AppError, signInSchema } from "@wallet/common";
 
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(db),
@@ -40,7 +40,7 @@ export const authOptions: NextAuthOptions = {
         const { email, password } = await signInSchema.parseAsync(credentials);
 
         if (!email || !password) {
-          throw new Error("Missing email or password");
+          throw new AppError("Missing email or password");
         }
 
         const user = await db.user.findUnique({
@@ -48,24 +48,24 @@ export const authOptions: NextAuthOptions = {
         });
 
         if (!user) {
-          throw new Error("Invalid email or password");
+          throw new AppError("Invalid email or password");
         }
 
         // ⚠️ Handle Google OAuth users trying to sign in with password
         if (!user.password) {
-          throw new Error(
+          throw new AppError(
             "This account was created with Google. Please sign in with Google.",
           );
         }
 
         if (!user.emailVerified) {
-          throw new Error("Please verify your email before signing in");
+          throw new AppError("Please verify your email before signing in");
         }
 
         const isPasswordValid = await bcrypt.compare(password, user.password);
 
         if (!isPasswordValid) {
-          throw new Error("Invalid email or password");
+          throw new AppError("Invalid email or password");
         }
 
         return {

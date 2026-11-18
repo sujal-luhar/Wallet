@@ -10,6 +10,7 @@ import {
   merchantPaymentSchema,
   MerchantPaymentInput,
   TxActionResponse,
+  AppError,
 } from "@wallet/common";
 
 async function executeMerchantPayment({
@@ -30,13 +31,13 @@ async function executeMerchantPayment({
   });
 
   if (!merchantProfile || !merchantProfile.Wallet) {
-    throw new Error("Merchant profile not found.");
+    throw new AppError("Merchant profile not found.");
   }
 
   const destinationWallet = merchantProfile.Wallet;
 
   if (destinationWallet.id === senderWalletId) {
-    throw new Error(
+    throw new AppError(
       "You cannot pay your own merchant wallet from your user wallet.",
     );
   }
@@ -50,13 +51,13 @@ async function executeMerchantPayment({
       tx.amount === amountPaise;
 
     // Deliberately generic: don't reveal that the key exists for someone else.
-    if (!sameIntent) throw new Error("Invalid request. Please start a new payment.");
+    if (!sameIntent) throw new AppError("Invalid request. Please start a new payment.");
 
     if (tx.status === "SUCCESS" || tx.status === "PENDING") {
       return { success: true as const, id: tx.id };
     }
 
-    throw new Error(
+    throw new AppError(
       "This payment attempt has already concluded. Please start a new payment.",
     );
   };
@@ -77,7 +78,7 @@ async function executeMerchantPayment({
       const currentSenderWallet = senderWallets[0];
 
       if (!currentSenderWallet || currentSenderWallet.balance < amountPaise) {
-        throw new Error("Insufficient wallet balance.");
+        throw new AppError("Insufficient wallet balance.");
       }
 
       // 2. Deduct from Sender User Wallet

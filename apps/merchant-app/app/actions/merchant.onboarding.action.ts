@@ -4,19 +4,20 @@ import { db } from "@wallet/db";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@wallet/auth"; // Adjust based on your auth setup
 import { redirect } from "next/navigation";
+import { AppError } from "@wallet/common";
 
 export async function handleMerchantOnboarding(formData: FormData) {
   const session = await getServerSession(authOptions);
 
   if (!session || !session.user?.id) {
-    throw new Error("Unauthorized");
+    throw new AppError("Unauthorized");
   }
 
   const businessName = formData.get("businessName") as string;
   const supportEmail = formData.get("supportEmail") as string;
 
   if (!businessName) {
-    throw new Error("Business name is required");
+    throw new AppError("Business name is required");
   }
 
   // Check if profile already exists to prevent duplicate creation

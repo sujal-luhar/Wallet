@@ -11,6 +11,7 @@ import {
   refundSchema,
   RefundInput,
   TxActionResponse,
+  AppError,
 } from "@wallet/common";
 
 // Pure business logic function (accepts validated data)
@@ -32,7 +33,7 @@ async function executeRefund({
 
     const currentWallet = wallets[0];
     if (!currentWallet || currentWallet.balance < amount) {
-      throw new Error("Insufficient wallet balance to issue refund.");
+      throw new AppError("Insufficient wallet balance to issue refund.");
     }
 
     const updateResult = await dbTx.transaction.updateMany({
@@ -41,7 +42,7 @@ async function executeRefund({
     });
 
     if (updateResult.count === 0) {
-      throw new Error(
+      throw new AppError(
         "Transaction has already been refunded or is no longer eligible.",
       );
     }

@@ -10,6 +10,7 @@ import {
   p2pTransferSchema,
   P2PTransferInput,
   TxActionResponse,
+  AppError,
 } from "@wallet/common";
 
 async function executeP2PTransfer({
@@ -27,13 +28,13 @@ async function executeP2PTransfer({
   });
 
   if (!recipientUser || !recipientUser.Wallet) {
-    throw new Error("Recipient phone number is not registered.");
+    throw new AppError("Recipient phone number is not registered.");
   }
 
   const recipientWallet = recipientUser.Wallet;
 
   if (recipientWallet.id === senderWalletId) {
-    throw new Error("You cannot send money to your own wallet.");
+    throw new AppError("You cannot send money to your own wallet.");
   }
 
   const resume = (tx: NonNullable<Awaited<ReturnType<typeof checkIdempotency>>>) => {
@@ -45,13 +46,13 @@ async function executeP2PTransfer({
       tx.amount === amountPaise;
 
     // Deliberately generic: don't reveal that the key exists for someone else.
-    if (!sameIntent) throw new Error("Invalid request. Please start a new transfer.");
+    if (!sameIntent) throw new AppError("Invalid request. Please start a new transfer.");
 
     if (tx.status === "SUCCESS" || tx.status === "PENDING") {
       return { success: true as const, id: tx.id };
     }
 
-    throw new Error(
+    throw new AppError(
       "This transfer attempt has already concluded. Please start a new transfer.",
     );
   };
@@ -75,7 +76,7 @@ async function executeP2PTransfer({
         !currentSenderWallet ||
         currentSenderWallet.balance < amountPaise
       ) {
-        throw new Error("Insufficient wallet balance.");
+        throw new AppError("Insufficient wallet balance.");
       }
 
       // 2. Deduct from Sender

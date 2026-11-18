@@ -11,6 +11,7 @@ import {
   settleToBankSchema,
   SettleToBankInput,
   TxActionResponse,
+  AppError,
 } from "@wallet/common";
 
 async function executeSettleToBank({
@@ -29,13 +30,13 @@ async function executeSettleToBank({
       tx.amount === amountCents;
 
     // Deliberately generic: don't reveal that the key exists for someone else.
-    if (!sameIntent) throw new Error("Invalid request. Please start a new settlement.");
+    if (!sameIntent) throw new AppError("Invalid request. Please start a new settlement.");
 
     if (tx.status === "PENDING" || tx.status === "PROCESSING") {
       return { success: true as const, id: tx.id };
     }
 
-    throw new Error(
+    throw new AppError(
       "This settlement attempt has already concluded. Please start a new settlement.",
     );
   };
@@ -54,7 +55,7 @@ async function executeSettleToBank({
 
       const currentWallet = wallets[0];
       if (!currentWallet || currentWallet.balance < amountCents) {
-        throw new Error("Insufficient available balance for settlement.");
+        throw new AppError("Insufficient available balance for settlement.");
       }
 
       await tx.wallet.update({

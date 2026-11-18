@@ -10,6 +10,7 @@ import {
   withdrawSchema,
   WithdrawInput,
   TxActionResponse,
+  AppError,
 } from "@wallet/common";
 
 async function executeWithdrawal({
@@ -28,13 +29,13 @@ async function executeWithdrawal({
       tx.amount === amountPaise;
 
     // Deliberately generic: don't reveal that the key exists for someone else.
-    if (!sameIntent) throw new Error("Invalid request. Please start a new withdrawal.");
+    if (!sameIntent) throw new AppError("Invalid request. Please start a new withdrawal.");
 
     if (tx.status === "PENDING" || tx.status === "PROCESSING") {
       return { success: true as const, id: tx.id };
     }
 
-    throw new Error(
+    throw new AppError(
       "This withdrawal attempt has already concluded. Please start a new withdrawal.",
     );
   };
@@ -55,7 +56,7 @@ async function executeWithdrawal({
       const currentWallet = wallets[0];
 
       if (!currentWallet || currentWallet.balance < amountPaise) {
-        throw new Error("Insufficient wallet balance.");
+        throw new AppError("Insufficient wallet balance.");
       }
 
       // 2. Deduct from balance and move to locked balance

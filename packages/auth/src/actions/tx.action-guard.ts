@@ -1,12 +1,13 @@
 import { db } from "@wallet/db";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../index";
+import { AppError } from "@wallet/common";
 
 // 1. Resolves wallet ID for standard users or merchants
 export async function resolveWalletAndAuth(isMerchant = false) {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) {
-    throw new Error("Unauthorized.");
+    throw new AppError("Unauthorized.");
   }
 
   if (isMerchant) {
@@ -14,14 +15,14 @@ export async function resolveWalletAndAuth(isMerchant = false) {
       where: { userId: session.user.id },
       select: { Wallet: { select: { id: true } } },
     });
-    if (!merchantProfile?.Wallet) throw new Error("Merchant wallet not found.");
+    if (!merchantProfile?.Wallet) throw new AppError("Merchant wallet not found.");
     return { userId: session.user.id, walletId: merchantProfile.Wallet.id };
   } else {
     const user = await db.user.findUnique({
       where: { id: session.user.id },
       include: { Wallet: true },
     });
-    if (!user?.Wallet) throw new Error("User wallet not found.");
+    if (!user?.Wallet) throw new AppError("User wallet not found.");
     return { userId: session.user.id, walletId: user.Wallet.id };
   }
 }
@@ -58,15 +59,15 @@ export async function assertValidRefundTarget(
   });
 
   if (!tx || tx.destinationWalletId !== merchantWalletId) {
-    throw new Error("Transaction not found or unauthorized.");
+    throw new AppError("Transaction not found or unauthorized.");
   }
 
   if (tx.status !== "SUCCESS") {
-    throw new Error("Only successful transactions can be refunded.");
+    throw new AppError("Only successful transactions can be refunded.");
   }
 
   if (!tx.sourceWalletId) {
-    throw new Error("Invalid source wallet for refund.");
+    throw new AppError("Invalid source wallet for refund.");
   }
 
   return {
