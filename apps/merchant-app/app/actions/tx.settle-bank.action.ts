@@ -19,7 +19,7 @@ async function executeSettleToBank({
   idempotencyKey,
 }: SettleToBankInput): Promise<TxActionResponse> {
   const { walletId } = await resolveWalletAndAuth(true);
-  const amountCents = BigInt(Math.round(amount * 100));
+  const amountPaise = BigInt(Math.round(amount * 100));
 
   const resume = (tx: NonNullable<Awaited<ReturnType<typeof checkIdempotency>>>) => {
     // Same key must mean same intent, and must belong to this wallet.
@@ -27,7 +27,7 @@ async function executeSettleToBank({
       tx.type === "WITHDRAWAL" &&
       tx.sourceWalletId === walletId &&
       tx.destinationWalletId === null &&
-      tx.amount === amountCents;
+      tx.amount === amountPaise;
 
     // Deliberately generic: don't reveal that the key exists for someone else.
     if (!sameIntent) throw new AppError("Invalid request. Please start a new settlement.");
@@ -54,23 +54,23 @@ async function executeSettleToBank({
       `;
 
       const currentWallet = wallets[0];
-      if (!currentWallet || currentWallet.balance < amountCents) {
+      if (!currentWallet || currentWallet.balance < amountPaise) {
         throw new AppError("Insufficient available balance for settlement.");
       }
 
       await tx.wallet.update({
         where: { id: walletId },
         data: {
-          balance: { decrement: amountCents },
-          locked: { increment: amountCents },
+          balance: { decrement: amountPaise },
+          locked: { increment: amountPaise },
         },
       });
 
       const newTx = await tx.transaction.create({
         data: {
-          amount: amountCents,
+          amount: amountPaise,
           type: "WITHDRAWAL",
-          status: "PROCESSING",
+          status: "PENDING",
           sourceWalletId: walletId,
           destinationWalletId: null,
           idempotencyKey,
@@ -83,15 +83,30 @@ async function executeSettleToBank({
 
     const mockBankUrl =
       process.env.NEXT_PUBLIC_MOCK_BANK_URL || "http://localhost:3001";
-    fetch(`${mockBankUrl}/mock-bank/payout`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        txId: transactionId,
-        amount: Number(amountCents),
-        destinationAccount: "MERCHANT_BANK_ACC",
-      }),
-    }).catch((err) => console.error("Error triggering mock bank payout:", err));
+
+    try {
+      const response = await fetch(`${mockBankUrl}/mock-bank/payout`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          txId: transactionId,
+          amount: Number(amountPaise),
+          destinationAccount: "MERCHANT_BANK_ACC",
+        }),
+        signal: AbortSignal.timeout(10_000),
+      });
+
+      if (!response.ok) {
+        throw new AppError(
+          `Mock bank rejected payout: HTTP ${response.status}`,
+        );
+      }
+    } catch (err) {
+      console.error(
+        `[Settlement] Failed to receive bank acceptance for ${transactionId}:`,
+        err,
+      );
+    }
 
     revalidatePath("/dashboard");
     revalidatePath("/settlements");

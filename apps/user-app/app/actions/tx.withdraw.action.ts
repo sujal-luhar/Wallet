@@ -87,7 +87,7 @@ async function executeWithdrawal({
       process.env.NEXT_PUBLIC_MOCK_BANK_URL || "http://localhost:3001";
 
     try {
-      await fetch(`${bankBaseUrl}/mock-bank/payout`, {
+      const response = await fetch(`${bankBaseUrl}/mock-bank/payout`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -95,9 +95,20 @@ async function executeWithdrawal({
           amount: Number(amountPaise),
           destinationAccount: "HDFC_••••_4092",
         }),
+        signal: AbortSignal.timeout(10_000),
       });
+
+      if (!response.ok) {
+        throw new AppError(
+          `Mock bank rejected payout: HTTP ${response.status}`,
+        );
+      }
     } catch (err) {
-      console.error("Failed to notify mock bank:", err);
+      console.error(
+        `[Withdrawal] Failed to receive bank acceptance for ${transaction.id}:`,
+        err,
+      );
+
     }
 
     return { success: true, id: transaction.id };

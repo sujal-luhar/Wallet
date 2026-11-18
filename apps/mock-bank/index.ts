@@ -95,7 +95,11 @@ app.post("/mock-bank/payout", async (req, res) => {
         // SUCCESS: Clear from locked balance permanently
         await db.$transaction(async (tx) => {
           const transaction = await tx.transaction.update({
-            where: { id: txId },
+            where: {
+              id: txId,
+              status: "PENDING",
+              type: "WITHDRAWAL",
+            },
             data: { status: "SUCCESS" },
           });
 
