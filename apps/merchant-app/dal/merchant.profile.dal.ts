@@ -3,10 +3,11 @@ import "server-only";
 import { db } from "@wallet/db";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@wallet/auth";
+import { AppError } from "@wallet/common";
 
 export default async function getMerchantProfile() {
   const session = await getServerSession(authOptions);
-  if (!session?.user?.id) throw new Error("Unauthorized");
+  if (!session?.user?.id) throw new AppError("Unauthorized");
 
   const merchantProfile = await db.merchantProfile.findUnique({
     where: { userId: session.user.id },

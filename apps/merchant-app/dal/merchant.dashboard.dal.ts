@@ -2,6 +2,7 @@ import "server-only";
 
 import { db } from "@wallet/db";
 import getMerchantProfile from "./merchant.profile.dal";
+import { AppError } from "@wallet/common";
 
 // Helper to get consistent YYYY-MM-DD local date strings
 function getLocalDateKey(d: Date): string {
@@ -15,7 +16,7 @@ export async function getMerchantDashboardData() {
   const merchantProfile = await getMerchantProfile();
 
   if (!merchantProfile || !merchantProfile.Wallet) {
-    throw new Error("Merchant profile or wallet not found");
+    throw new AppError("Merchant profile or wallet not found");
   }
 
   const walletId = merchantProfile.Wallet.id;

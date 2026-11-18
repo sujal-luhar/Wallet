@@ -3,12 +3,13 @@ import "server-only";
 import { authOptions } from "@wallet/auth";
 import { db } from "@wallet/db";
 import { getServerSession } from "next-auth";
+import { AppError } from "@wallet/common";
 
 async function getAuthUserId() {
   const session = await getServerSession(authOptions);
 
   if (!session?.user?.id) {
-    throw new Error("Unauthorised User");
+    throw new AppError("Unauthorised User");
   }
 
   return session.user.id;

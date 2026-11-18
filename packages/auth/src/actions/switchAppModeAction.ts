@@ -5,12 +5,13 @@ import { redirect } from "next/navigation";
 import { db } from "@wallet/db";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../index";
+import { AppError } from "@wallet/common";
 
 export async function switchAppModeAction(targetMode: "user" | "merchant") {
   const session = await getServerSession(authOptions);
 
   if (!session || !session.user?.id) {
-    throw new Error("Unauthorized");
+    throw new AppError("Unauthorized");
   }
 
   const cookieStore = await cookies();
