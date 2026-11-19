@@ -135,10 +135,12 @@ app.post("/mock-bank/payout", async (req, res) => {
               return;
             }
 
-
+            if (!transaction.sourceWalletId) {
+              throw new Error(`Missing source wallet for payout ${txId}`);
+            }
 
             await tx.wallet.update({
-              where: { id: transaction.sourceWalletId! },
+              where: { id: transaction.sourceWalletId },
               data: { locked: { decrement: transaction.amount } },
             });
           });
