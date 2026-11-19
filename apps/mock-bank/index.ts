@@ -40,13 +40,11 @@ const corsOptions = {
 app.use(cors(corsOptions));
 
 app.get("/mock-bank/pay", async (req, res) => {
-  const rawTxId = req.query.txnId;
+  const txnId = req.query.txnId;
 
-  if (!rawTxId) {
+  if (!txnId) {
     return res.status(400).send("Transaction ID missing from request.");
   }
-
-  const txnId = String(rawTxId);
 
   const transaction = await db.transaction.findUnique({
     where: {
@@ -81,66 +79,123 @@ app.get("/mock-bank/pay", async (req, res) => {
 app.post("/mock-bank/payout", async (req, res) => {
   const { txId, amount } = req.body;
 
-  if (!txId || !amount) {
+  if (!txId || !amount || amount <= 0) {
     return res.status(400).json({ success: false, error: "Invalid payload" });
   }
 
-  // Simulate bank processing delay (2 seconds)
-  setTimeout(async () => {
-    try {
-      // Simulate 90% success rate, 10% bank failure rate
-      const isSuccessful = Math.random() < 0.9;
+  try {
+    // Verify that this is the valid pending withdrawal
 
-      if (isSuccessful) {
-        // SUCCESS: Clear from locked balance permanently
-        await db.$transaction(async (tx) => {
-          const transaction = await tx.transaction.update({
-            where: {
-              id: txId,
-              status: "PENDING",
-              type: "WITHDRAWAL",
-            },
-            data: { status: "SUCCESS" },
-          });
-
-          await tx.wallet.update({
-            where: { id: transaction.sourceWalletId! },
-            data: { locked: { decrement: transaction.amount } },
-          });
-        });
-        console.log(
-          `[MockBank] Payout ${txId} of ₹${amount / 100} SUCCESSFUL. Cleared from locked.`,
-        );
-      } else {
-        // FAILED: Refund back to available balance and remove from locked
-        await db.$transaction(async (tx) => {
-          const transaction = await tx.transaction.update({
-            where: { id: txId },
-            data: { status: "FAILED" },
-          });
-
-          await tx.wallet.update({
-            where: { id: transaction.sourceWalletId! },
-            data: {
-              balance: { increment: transaction.amount },
-              locked: { decrement: transaction.amount },
-            },
-          });
-        });
-        console.log(
-          `[MockBank] Payout ${txId} FAILED. Reverted balance to wallet and cleared locked.`,
-        );
+    const transaction = await db.transaction.findFirst({
+      where: {
+        id: txId,
+        type: "WITHDRAWAL",
+        status: "PENDING",
+      },
+      select: {
+        id: true,
+        amount: true,
       }
-    } catch (err) {
-      console.error(`[MockBank] Error processing payout ${txId}:`, err);
-    }
-  }, 2000);
+    })
 
-  return res.status(202).json({
-    success: true,
-    message: "Payout request accepted and queued by bank.",
-    txId,
-  });
+    if (!transaction) {
+      return res.status(409).json({
+        success: false,
+        error: "Transaction not found or already processed",
+      })
+    }
+
+    if (transaction.amount !== BigInt(amount)) {
+      return res.status(400).json({
+        success: false,
+        error: "Amount mismatch",
+      });
+    }
+
+    // Simulate bank processing delay (2 seconds)
+    setTimeout(async () => {
+      try {
+        // Simulate 90% success rate, 10% bank failure rate
+        const isSuccessful = Math.random() < 0.9;
+
+        if (isSuccessful) {
+          // SUCCESS: Clear from locked balance permanently
+          await db.$transaction(async (tx) => {
+            const transaction = await tx.transaction.update({
+              where: {
+                id: txId,
+                status: "PENDING",
+                type: "WITHDRAWAL",
+              },
+              data: { status: "SUCCESS" },
+            });
+
+            if (!transaction) {
+              console.log(`[MockBank] ${txId} already processed. Skipping.`);
+              return;
+            }
+
+
+
+            await tx.wallet.update({
+              where: { id: transaction.sourceWalletId! },
+              data: { locked: { decrement: transaction.amount } },
+            });
+          });
+          console.log(
+            `[MockBank] Payout ${txId} of ₹${amount / 100} SUCCESSFUL. Cleared from locked.`,
+          );
+        } else {
+          // FAILED: Refund back to available balance and remove from locked
+          await db.$transaction(async (tx) => {
+            const transaction = await tx.transaction.update({
+              where: {
+                id: txId,
+                type: "WITHDRAWAL",
+                status: "PENDING",
+              },
+              data: { status: "FAILED" },
+            });
+
+            if (!transaction) {
+              console.log(`[MockBank] ${txId} already processed. Skipping.`);
+              return;
+            }
+
+            if (!transaction.sourceWalletId) {
+              throw new Error(`Missing source wallet for payout ${txId}`);
+            }
+
+            await tx.wallet.update({
+              where: { id: transaction.sourceWalletId },
+              data: {
+                balance: { increment: transaction.amount },
+                locked: { decrement: transaction.amount },
+              },
+            });
+          });
+          console.log(
+            `[MockBank] Payout ${txId} FAILED. Reverted balance to wallet and cleared locked.`,
+          );
+        }
+      } catch (err) {
+        console.error(`[MockBank] Error processing payout ${txId}:`, err);
+      }
+    }, 2000);
+
+    return res.status(202).json({
+      success: true,
+      message: "Payout request accepted and queued by bank.",
+      txId,
+    });
+  } catch (err) {
+    console.error(`[MockBank] Error accepting payout ${txId}:`, err);
+
+    return res.status(500).json({
+      success: false,
+      error: "Unable to accept payout",
+    });
+  }
 });
 
 app.post("/mock-bank/process", async (req, res) => {
