@@ -16,6 +16,8 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "Missing txId" }, { status: 400 });
   }
 
+  // Querying with `session.user.*` to solve
+  // IDOR (Insecure Direct Object Reference)
   const transaction = await db.transaction.findFirst({
     where: {
       id: txId,

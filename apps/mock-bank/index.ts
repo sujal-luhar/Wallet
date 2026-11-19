@@ -39,6 +39,30 @@ const corsOptions = {
 
 app.use(cors(corsOptions));
 
+const MOCK_BANK_API_SECRET = process.env.MOCK_BANK_API_SECRET;
+
+if (!MOCK_BANK_API_SECRET) {
+  throw new Error("MOCK_BANK_API_SECRET is missing");
+}
+
+function authenticatePayout(
+  req: express.Request,
+  res: express.Response,
+  next: express.NextFunction,
+) {
+  const authHeader = req.headers.authorization;
+  const expected = `Bearer ${MOCK_BANK_API_SECRET}`;
+
+  if (authHeader !== expected) {
+    return res.status(401).json({
+      success: false,
+      error: "Unauthorized",
+    });
+  }
+
+  next();
+}
+
 app.get("/mock-bank/pay", async (req, res) => {
   const txnId = req.query.txnId;
 
@@ -76,7 +100,7 @@ app.get("/mock-bank/pay", async (req, res) => {
   });
 });
 
-app.post("/mock-bank/payout", async (req, res) => {
+app.post("/mock-bank/payout", authenticatePayout, async (req, res) => {
   const { txId, amount } = req.body;
 
   if (!txId || !amount || amount <= 0) {
@@ -223,7 +247,11 @@ app.post("/mock-bank/process", async (req, res) => {
         // Solved check-then-act race
         const credited = await db.$transaction(async (prisma) => {
           const { count } = await prisma.transaction.updateMany({
-            where: { id: txId, status: "PENDING", type: "DEPOSIT" },
+            where: {
+              id: txId,
+              status: "PENDING",
+              type: "DEPOSIT"
+            },
             data: { status: "SUCCESS" },
           });
 
@@ -250,7 +278,11 @@ app.post("/mock-bank/process", async (req, res) => {
   } else {
     // Handle Failed Payment
     await db.transaction.update({
-      where: { id: txId },
+      where: {
+        id: txId,
+        status: "PENDING",
+        type: "DEPOSIT"
+      },
       data: { status: "FAILED" },
     });
 

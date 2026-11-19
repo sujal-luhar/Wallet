@@ -89,7 +89,10 @@ async function executeWithdrawal({
     try {
       const response = await fetch(`${bankBaseUrl}/mock-bank/payout`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${process.env.MOCK_BANK_API_SECRET}`,
+        },
         body: JSON.stringify({
           txId: transaction.id,
           amount: Number(amountPaise),

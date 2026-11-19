@@ -17,7 +17,8 @@
     "SMTP_PASS",
     "NEXT_PUBLIC_USER_APP_URL",
     "NEXT_PUBLIC_MERCHANT_APP_URL",
-    "NEXT_PUBLIC_MOCK_BANK_URL"
+    "NEXT_PUBLIC_MOCK_BANK_URL",
+    "MOCK_BANK_API_SECRET"
   ],
   "tasks": {
     "generate": {
@@ -43,7 +44,9 @@
       "dependsOn": [
         "^lint"
       ],
-      "env": ["NODE_ENV"]
+      "env": [
+        "NODE_ENV"
+      ]
     },
     "check-types": {
       "dependsOn": [
@@ -53,7 +56,10 @@
       ]
     },
     "dev": {
-      "dependsOn": ["^generate", "generate"],
+      "dependsOn": [
+        "^generate",
+        "generate"
+      ],
       "cache": false,
       "persistent": true
     },

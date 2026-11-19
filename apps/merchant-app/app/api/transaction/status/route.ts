@@ -16,8 +16,17 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "Missing txId" }, { status: 400 });
   }
 
+  // Querying with `session.user.*` to solve
+  // IDOR (Insecure Direct Object Reference)
   const tx = await db.transaction.findUnique({
-    where: { id: txId },
+    where: {
+      id: txId,
+      OR: [
+        // The OR covers every transaction type: Deposit, Withdrawal, P2P
+        { sourceWallet: { userId: session.user.id } }, // Could be useful for refund probably
+        { destinationWallet: { userId: session.user.id } },
+      ],
+    },
     select: {
       status: true,
       amount: true,

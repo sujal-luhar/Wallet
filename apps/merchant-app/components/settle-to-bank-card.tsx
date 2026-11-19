@@ -26,7 +26,7 @@ export function SettleToBankCard({ availableBalance }: SettleToBankCardProps) {
   // Polling state variables
   const [activeTxId, setActiveTxId] = useState<string | null>(null);
   const [txStatus, setTxStatus] = useState<
-    "IDLE" | "PROCESSING" | "SUCCESS" | "FAILED"
+    "IDLE" | "PENDING" | "SUCCESS" | "FAILED"
   >("IDLE");
 
   const attempt = useRef<{ key: string; amount: number } | null>(null);
@@ -45,12 +45,14 @@ export function SettleToBankCard({ availableBalance }: SettleToBankCardProps) {
   // Polling effect matching user-app pattern
   useEffect(() => {
     if (!activeTxId) return;
-
     let isMounted = true;
 
     const pollStatus = async () => {
       try {
-        const res = await fetch(`/api/transaction/status?txId=${activeTxId}`);
+        const res = await fetch(
+          `/api/transaction/status?txId=${encodeURIComponent(activeTxId)}`,
+        { cache: "no-store" },
+      );
         const data = await res.json();
 
         if (!res.ok) throw new Error(data.error);
@@ -102,7 +104,7 @@ export function SettleToBankCard({ availableBalance }: SettleToBankCardProps) {
 
       setAmount("");
       setActiveTxId(result.id);
-      setTxStatus("PROCESSING"); // Start polling loop
+      setTxStatus("PENDING"); // Start polling loop
     });
   };
 
@@ -163,8 +165,8 @@ export function SettleToBankCard({ availableBalance }: SettleToBankCardProps) {
           </form>
         )}
 
-        {/* State 2: PROCESSING (Polling Loader) */}
-        {txStatus === "PROCESSING" && (
+        {/* State 2: PENDING (Polling Loader) */}
+        {txStatus === "PENDING" && (
           <div className="py-8 text-center space-y-3">
             <Loader2 className="w-8 h-8 text-primary animate-spin mx-auto" />
             <p className="text-sm font-medium">Processing bank settlement...</p>

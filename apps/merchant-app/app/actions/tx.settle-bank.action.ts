@@ -87,7 +87,10 @@ async function executeSettleToBank({
     try {
       const response = await fetch(`${mockBankUrl}/mock-bank/payout`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${process.env.MOCK_BANK_API_SECRET}`,
+        },
         body: JSON.stringify({
           txId: transactionId,
           amount: Number(amountPaise),

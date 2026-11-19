@@ -7,6 +7,12 @@ import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import { db } from "@wallet/db";
 import { AppError, signInSchema } from "@wallet/common";
 
+const authSecret = process.env.NEXTAUTH_SECRET;
+
+if (!authSecret) {
+  throw new Error("NEXTAUTH_SECRET environment variable is required.");
+}
+
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(db),
   session: {
@@ -16,7 +22,6 @@ export const authOptions: NextAuthOptions = {
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID || "",
       clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
-      allowDangerousEmailAccountLinking: true,
       authorization: {
         params: {
           prompt: "select_account", // Forces Google to ask which account to use
@@ -28,7 +33,6 @@ export const authOptions: NextAuthOptions = {
     GithubProvider({
       clientId: process.env.GITHUB_CLIENT_ID || "",
       clientSecret: process.env.GITHUB_SECRET || "",
-      allowDangerousEmailAccountLinking: true,
     }),
     CredentialsProvider({
       name: "Credentials",
@@ -77,7 +81,7 @@ export const authOptions: NextAuthOptions = {
       },
     }),
   ],
-  secret: process.env.NEXTAUTH_SECRET || "secret",
+  secret: authSecret,
   callbacks: {
     // Sync OAuth users to database upon initial login
     async signIn({ user, account }) {
