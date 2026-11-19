@@ -12,7 +12,7 @@ export async function updatePhoneNumber(phoneNumber: string) {
   }
 
   // Basic validation (10 digits)
-  if (!/^\d{10}$/.test(phoneNumber.slice(3))) {
+  if (!/^\d{10}$/.test(phoneNumber)) {
     return {
       success: false,
       error: "Please enter a valid 10-digit phone number.",

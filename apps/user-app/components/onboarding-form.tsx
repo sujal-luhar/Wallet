@@ -24,7 +24,7 @@ export function OnboardingForm() {
     setLoading(true);
     setError("");
 
-    const res = await updatePhoneNumber("+91" + phone);
+    const res = await updatePhoneNumber(phone);
 
     if (!res.success) {
       setError(res.error || "Failed to update phone number");
