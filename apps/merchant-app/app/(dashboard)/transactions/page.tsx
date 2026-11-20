@@ -22,7 +22,9 @@ export default async function TransactionsPage({ searchParams }: PageProps) {
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-2">
-        <h1 className="text-2xl font-bold tracking-tight">Transactions</h1>
+        <h1 className="text-xl font-bold tracking-tight sm:text-2xl">
+          Transactions
+        </h1>
         <p className="text-sm text-muted-foreground">
           Manage customer payments, view statuses, and issue instant refunds.
         </p>

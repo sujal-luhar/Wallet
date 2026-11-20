@@ -19,28 +19,30 @@ export function TransactionsRows({ transactions }: TransactionsRowsProps) {
       {transactions.map((tx) => (
         <div
           key={tx.id}
-          className="flex items-center justify-between py-3.5 first:pt-0 last:pb-0"
+          className="flex items-start justify-between gap-3 py-3.5 first:pt-0 last:pb-0 sm:items-center"
         >
-          <div className="flex items-center gap-3">
-            <div className="p-2 rounded-full bg-muted">
+          <div className="flex min-w-0 items-center gap-3">
+            <div className="shrink-0 rounded-full bg-muted p-2">
               {tx.amount.startsWith("+") ? (
                 <ArrowDownLeft className="h-4 w-4 text-emerald-600" />
               ) : (
                 <ArrowUpRight className="h-4 w-4 text-muted-foreground" />
               )}
             </div>
-            <div>
-              <p className="text-sm font-medium leading-none">{tx.title}</p>
-              <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
+            <div className="min-w-0">
+              <p className="break-words text-sm font-medium leading-snug">
+                {tx.title}
+              </p>
+              <p className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
                 <Clock className="h-3 w-3" />
                 {tx.date}
               </p>
             </div>
           </div>
 
-          <div className="text-right">
+          <div className="shrink-0 text-right">
             <p
-              className={`text-sm font-semibold ${
+              className={`whitespace-nowrap text-sm font-semibold ${
                 tx.amount.startsWith("-")
                   ? "text-foreground"
                   : "text-emerald-600 dark:text-emerald-400"

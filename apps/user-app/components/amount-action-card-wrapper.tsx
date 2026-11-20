@@ -42,14 +42,14 @@ export function AmountActionCardWrapper({
   children,
 }: AmountActionCardWrapperProps) {
   return (
-    <div className="w-full max-w-md rounded-none border bg-card p-6 shadow-sm">
+    <div className="w-full max-w-md rounded-none border bg-card p-4 shadow-sm sm:p-6">
       {/* Header */}
-      <div className="mb-6 flex items-center justify-between border-b pb-4">
-        <div>
+      <div className="mb-5 flex items-start justify-between gap-3 border-b pb-4 sm:mb-6">
+        <div className="min-w-0">
           <h3 className="text-lg font-semibold tracking-tight">{title}</h3>
           <p className="text-xs text-muted-foreground">{subtitle}</p>
         </div>
-        {badge}
+        <div className="shrink-0">{badge}</div>
       </div>
 
       <form onSubmit={onSubmit} className="space-y-6">

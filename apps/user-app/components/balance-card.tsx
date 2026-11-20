@@ -27,10 +27,10 @@ export default async function BalanceCard({
       </CardHeader>
       <CardContent className="space-y-6">
         <div>
-          <div className="text-4xl font-black tracking-tight">
+          <div className="break-words text-3xl font-black tracking-tight sm:text-4xl">
             ₹{formattedBalance}
           </div>
-          <div className="flex items-center gap-3 text-xs text-muted-foreground mt-2">
+          <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
             <span>
               Currency:{" "}
               <strong className="text-foreground">{currency || "INR"}</strong>

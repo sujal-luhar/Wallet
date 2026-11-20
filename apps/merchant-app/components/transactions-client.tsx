@@ -73,8 +73,8 @@ export default function TransactionsClient({
       )}
 
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between pb-4">
-          <div>
+        <CardHeader className="flex flex-col items-stretch justify-between gap-3 p-4 pb-4 sm:flex-row sm:items-center sm:gap-4 sm:p-6 sm:pb-4">
+          <div className="min-w-0">
             <CardTitle className="text-base font-medium">
               Customer Payments
             </CardTitle>
@@ -83,7 +83,7 @@ export default function TransactionsClient({
               transactions
             </CardDescription>
           </div>
-          <div className="relative w-72">
+          <div className="relative w-full sm:w-72">
             <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder="Search customer or Tx ID..."
@@ -93,9 +93,9 @@ export default function TransactionsClient({
             />
           </div>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm">
+        <CardContent className="space-y-4 px-4 pb-4 sm:px-6 sm:pb-6">
+          <div className="hidden overflow-x-auto sm:block">
+            <table className="w-full min-w-[760px] text-left text-sm">
               <thead className="border-b bg-muted/50 text-xs uppercase text-muted-foreground">
                 <tr>
                   <th className="py-3 px-4 font-semibold">Customer</th>
@@ -178,6 +178,78 @@ export default function TransactionsClient({
                 )}
               </tbody>
             </table>
+          </div>
+
+          <div className="space-y-3 sm:hidden">
+            {filteredTransactions.length === 0 ? (
+              <div className="py-8 text-center text-muted-foreground">
+                No transactions found on this page.
+              </div>
+            ) : (
+              filteredTransactions.map((tx) => (
+                <div
+                  key={tx.id}
+                  className="space-y-3 border p-3"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="break-words text-sm font-medium">
+                        {tx.customer}
+                      </p>
+                      <p className="mt-1 font-mono text-xs text-muted-foreground">
+                        {tx.shortId}
+                      </p>
+                    </div>
+                    <p className="shrink-0 whitespace-nowrap text-sm font-semibold text-emerald-600">
+                      +₹
+                      {tx.amount.toLocaleString("en-IN", {
+                        minimumFractionDigits: 2,
+                      })}
+                    </p>
+                  </div>
+
+                  <div className="flex items-center justify-between gap-3 border-t pt-3">
+                    <div className="min-w-0 space-y-1">
+                      <p className="text-xs text-muted-foreground">{tx.date}</p>
+                      <span
+                        className={`inline-block rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
+                          tx.status === "SUCCESS"
+                            ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300"
+                            : tx.status === "REFUNDED"
+                              ? "bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300"
+                              : "bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300"
+                        }`}
+                      >
+                        {tx.status}
+                      </span>
+                    </div>
+                    {tx.status === "SUCCESS" ? (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        disabled={isPending && loadingId === tx.id}
+                        onClick={() => handleRefund(tx.id)}
+                        className="h-8 shrink-0 rounded-none border-rose-200 text-xs text-rose-600 hover:bg-rose-50 hover:text-rose-700"
+                      >
+                        {isPending && loadingId === tx.id ? (
+                          <Loader2 className="mr-1 h-3 w-3 animate-spin" />
+                        ) : null}
+                        Issue Refund
+                      </Button>
+                    ) : (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 shrink-0 rounded-none text-xs text-muted-foreground hover:text-foreground"
+                        disabled
+                      >
+                        Refunded
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              ))
+            )}
           </div>
 
           {/* Pagination Footer */}

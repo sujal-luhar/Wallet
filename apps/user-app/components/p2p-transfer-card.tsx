@@ -125,10 +125,12 @@ export default function P2PTransferCard({
   };
 
   return (
-    <div className="w-full max-w-md mx-auto border bg-card p-6 space-y-6 rounded-none shadow-sm">
+    <div className="mx-auto w-full min-w-0 max-w-md space-y-5 rounded-none border bg-card p-4 shadow-sm sm:space-y-6 sm:p-6">
       {/* Title & Description */}
       <div className="space-y-1">
-        <h2 className="text-xl font-bold tracking-tight">Send Money</h2>
+        <h2 className="text-lg font-bold tracking-tight sm:text-xl">
+          Send Money
+        </h2>
         <p className="text-xs text-muted-foreground">
           Transfer funds instantly to friends or registered businesses.
         </p>
@@ -145,13 +147,21 @@ export default function P2PTransferCard({
         className="w-full"
       >
         <TabsList variant="line" className="w-full grid grid-cols-2">
-          <TabsTrigger value="p2p" className="gap-2 text-xs">
+          <TabsTrigger
+            value="p2p"
+            className="min-w-0 gap-1 text-[11px] sm:gap-2 sm:text-xs"
+          >
             <User className="w-3.5 h-3.5" />
-            Personal (P2P)
+            <span className="sm:hidden">Personal</span>
+            <span className="hidden sm:inline">Personal (P2P)</span>
           </TabsTrigger>
-          <TabsTrigger value="merchant" className="gap-2 text-xs">
+          <TabsTrigger
+            value="merchant"
+            className="min-w-0 gap-1 text-[11px] sm:gap-2 sm:text-xs"
+          >
             <Building2 className="w-3.5 h-3.5" />
-            Merchant / Business
+            <span className="sm:hidden">Business</span>
+            <span className="hidden sm:inline">Merchant / Business</span>
           </TabsTrigger>
         </TabsList>
       </Tabs>
@@ -165,7 +175,7 @@ export default function P2PTransferCard({
 
       {/* Recent Payees Row (Shown for Personal Transfers) */}
       {transferType === "p2p" && recentPayees.length > 0 && (
-        <div className="space-y-2">
+        <div className="min-w-0 space-y-2">
           <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
             Recent Payees
           </Label>
@@ -256,7 +266,7 @@ export default function P2PTransferCard({
 
         {/* Amount Field with Balance Display */}
         <div className="space-y-2">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col items-start gap-1 sm:flex-row sm:items-center sm:justify-between">
             <Label htmlFor="amount" className="text-xs font-medium">
               Amount (₹)
             </Label>
@@ -283,7 +293,7 @@ export default function P2PTransferCard({
             required
           />
 
-          <div className="grid grid-cols-4 gap-2 pt-1">
+          <div className="grid grid-cols-2 gap-2 pt-1 sm:grid-cols-4">
             {[100, 500, 1000, 2000].map((preset) => (
               <Button
                 key={preset}

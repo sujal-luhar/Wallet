@@ -7,7 +7,7 @@ export default async function FundsPage() {
   const numericBalance = wallet?.balance ? Number(wallet.balance) / 100 : 0;
 
   return (
-    <div className="w-full mx-auto space-y-6 p-4 sm:p-6">
+    <div className="mx-auto w-full max-w-3xl space-y-6">
       {/* Server-fetched Balance */}
       <BalanceCard
         formattedBalance={wallet?.formattedBalance}

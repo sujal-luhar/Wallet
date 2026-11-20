@@ -32,14 +32,16 @@ export default async function SettlementsPage({ searchParams }: PageProps) {
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-2">
-        <h1 className="text-2xl font-bold tracking-tight">Bank Settlements</h1>
+        <h1 className="text-xl font-bold tracking-tight sm:text-2xl">
+          Bank Settlements
+        </h1>
         <p className="text-sm text-muted-foreground">
           Track payouts and bank transfer history from your merchant wallet.
         </p>
       </div>
 
       <Card>
-        <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <CardHeader className="flex flex-col justify-between gap-3 p-4 sm:flex-row sm:items-center sm:gap-4 sm:p-6">
           <div>
             <CardTitle className="text-base font-medium">
               Payout History
@@ -52,9 +54,9 @@ export default async function SettlementsPage({ searchParams }: PageProps) {
           <SettlementsPageSize currentLimit={limit} />
         </CardHeader>
 
-        <CardContent className="space-y-4">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm">
+        <CardContent className="space-y-4 px-4 pb-4 sm:px-6 sm:pb-6">
+          <div className="hidden overflow-x-auto sm:block">
+            <table className="w-full min-w-[700px] text-left text-sm">
               <thead className="border-b bg-muted/50 text-xs uppercase text-muted-foreground">
                 <tr>
                   <th className="py-3 px-4 font-semibold">Settlement ID</th>
@@ -115,6 +117,52 @@ export default async function SettlementsPage({ searchParams }: PageProps) {
                 )}
               </tbody>
             </table>
+          </div>
+
+          <div className="divide-y rounded-none border sm:hidden">
+            {settlements.length === 0 ? (
+              <p className="px-4 py-8 text-center text-muted-foreground">
+                No settlements initiated yet.
+              </p>
+            ) : (
+              settlements.map((stl) => (
+                <div
+                  key={stl.id}
+                  className="flex items-start justify-between gap-3 p-3"
+                >
+                  <div className="min-w-0 space-y-1">
+                    <p className="font-mono text-xs text-muted-foreground">
+                      {stl.shortId}
+                    </p>
+                    <p className="flex items-center gap-1.5 text-xs font-medium">
+                      <Building2 className="size-3.5 shrink-0 text-muted-foreground" />
+                      <span className="truncate">HDFC Bank ****4892</span>
+                    </p>
+                    <p className="text-xs text-muted-foreground">{stl.date}</p>
+                  </div>
+                  <div className="shrink-0 space-y-1 text-right">
+                    <p className="whitespace-nowrap text-sm font-semibold">
+                      -₹
+                      {stl.amount.toLocaleString("en-IN", {
+                        minimumFractionDigits: 2,
+                      })}
+                    </p>
+                    <span
+                      className={`inline-block rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
+                        stl.status === "SUCCESS"
+                          ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300"
+                          : stl.status === "PENDING" ||
+                              stl.status === "PROCESSING"
+                            ? "bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300"
+                            : "bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300"
+                      }`}
+                    >
+                      {stl.status}
+                    </span>
+                  </div>
+                </div>
+              ))
+            )}
           </div>
 
           {/* Pagination Footer */}

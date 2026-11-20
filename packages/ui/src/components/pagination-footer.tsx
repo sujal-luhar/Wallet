@@ -24,18 +24,19 @@ export default function PaginationFooter({
   Link,
 }: PaginationFooterProps) {
   return (
-    <div className="flex items-center justify-between pt-4 border-t text-xs text-muted-foreground">
+    <div className="flex flex-col gap-3 border-t pt-4 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
       <div>
         Page {currentPage} of {totalPages}
       </div>
 
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 self-end sm:self-auto">
         {currentPage > 1 ? (
           <Link href={`/${pageRoute}?page=${currentPage - 1}&limit=${limit}`}>
             <Button
               variant="outline"
               size="sm"
               className="h-8 w-8 p-0 rounded-none"
+              aria-label="Previous page"
             >
               <ChevronLeft className="h-4 w-4" />
             </Button>
@@ -45,6 +46,7 @@ export default function PaginationFooter({
             variant="outline"
             size="sm"
             className="h-8 w-8 p-0 rounded-none"
+            aria-label="Previous page"
             disabled
           >
             <ChevronLeft className="h-4 w-4" />
@@ -57,6 +59,7 @@ export default function PaginationFooter({
               variant="outline"
               size="sm"
               className="h-8 w-8 p-0 rounded-none"
+              aria-label="Next page"
             >
               <ChevronRight className="h-4 w-4" />
             </Button>
@@ -66,6 +69,7 @@ export default function PaginationFooter({
             variant="outline"
             size="sm"
             className="h-8 w-8 p-0 rounded-none"
+            aria-label="Next page"
             disabled
           >
             <ChevronRight className="h-4 w-4" />

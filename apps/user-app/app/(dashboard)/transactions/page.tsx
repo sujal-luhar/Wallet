@@ -30,9 +30,9 @@ export default async function TransactionsPage({ searchParams }: PageProps) {
     });
 
   return (
-    <div className="max-w-4xl mx-auto p-4 sm:p-6 space-y-6">
+    <div className="mx-auto w-full max-w-4xl space-y-6">
       <Card className="shadow-sm border-border/60">
-        <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <CardHeader className="flex flex-col justify-between gap-3 p-4 sm:flex-row sm:items-center sm:gap-4 sm:p-6">
           <div>
             <CardTitle className="text-xl">Transaction History</CardTitle>
             <CardDescription>
@@ -43,7 +43,7 @@ export default async function TransactionsPage({ searchParams }: PageProps) {
           <TransactionsPageSize currentLimit={limit} />
         </CardHeader>
 
-        <CardContent className="space-y-6">
+        <CardContent className="space-y-6 px-4 pb-4 sm:px-6 sm:pb-6">
           {transactions.length === 0 ? (
             <div className="text-center py-12 text-sm text-muted-foreground">
               No transactions found on this page.

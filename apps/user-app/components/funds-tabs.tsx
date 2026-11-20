@@ -14,15 +14,15 @@ export default function FundsTabs({ balance }: FundsTabsProps) {
   const [activeTab, setActiveTab] = useState<"deposit" | "withdraw">("deposit");
 
   return (
-    <div className="space-y-6">
+    <div className="w-full space-y-5 sm:space-y-6">
       {/* Tab Buttons */}
-      <div className="grid max-w-md grid-cols-2 gap-3">
+      <div className="grid w-full max-w-md grid-cols-2 gap-2 sm:gap-3">
         <Button
           type="button"
           size="lg"
           variant={activeTab === "deposit" ? "default" : "outline"}
           onClick={() => setActiveTab("deposit")}
-          className="w-full h-12 text-sm font-semibold rounded-none gap-2"
+          className="h-11 w-full gap-2 rounded-none text-xs font-semibold sm:h-12 sm:text-sm"
         >
           <ArrowDownLeft className="w-4 h-4" />
           Deposit
@@ -33,7 +33,7 @@ export default function FundsTabs({ balance }: FundsTabsProps) {
           size="lg"
           variant={activeTab === "withdraw" ? "default" : "outline"}
           onClick={() => setActiveTab("withdraw")}
-          className="w-full h-12 text-sm font-semibold rounded-none gap-2"
+          className="h-11 w-full gap-2 rounded-none text-xs font-semibold sm:h-12 sm:text-sm"
         >
           <ArrowUpRight className="w-4 h-4" />
           Withdraw

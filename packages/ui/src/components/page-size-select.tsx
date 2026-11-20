@@ -36,7 +36,7 @@ export default function PageSizeSelect({
   };
 
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex w-full items-center justify-between gap-2 sm:w-auto sm:justify-start">
       <span className="text-xs text-muted-foreground whitespace-nowrap">
         Rows per page:
       </span>
