@@ -21,11 +21,7 @@ export function Sidebar() {
     <SharedSidebar
       navigation={navigation}
       pathname={pathname}
-      renderLink={({ href, className, children }) => (
-        <Link href={href} className={className}>
-          {children}
-        </Link>
-      )}
+      renderLink={({ href, children }) => <Link href={href}>{children}</Link>}
     />
   );
 }

@@ -1,11 +1,21 @@
-import type { ComponentType } from "react";
+"use client";
+
+import type { ReactElement } from "react";
 import { Wallet } from "lucide-react";
-import { cn } from "../lib/utils";
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarGroup,
+  SidebarHeader,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+} from "./ui/sidebar";
 
 export interface NavItem {
   name: string;
   href: string;
-  icon: ComponentType<{ className?: string }>;
+  icon: React.ComponentType<{ className?: string }>;
 }
 
 export interface AppSidebarProps {
@@ -14,9 +24,8 @@ export interface AppSidebarProps {
   brandName?: string;
   renderLink?: (props: {
     href: string;
-    className: string;
     children: React.ReactNode;
-  }) => React.ReactNode;
+  }) => ReactElement;
 }
 
 export function AppSidebar({
@@ -26,53 +35,47 @@ export function AppSidebar({
   renderLink,
 }: AppSidebarProps) {
   return (
-    <aside className="flex h-screen w-64 flex-col border-r bg-card px-4 py-6">
-      {/* Brand Header */}
-      <div className="flex items-center gap-3 px-3 pb-6">
-        <div className="flex h-10 w-10 items-center justify-center rounded-none bg-primary text-primary-foreground">
-          <Wallet className="h-6 w-6" />
+    <Sidebar collapsible="icon">
+      <SidebarHeader className="p-3">
+        <div className="flex h-10 items-center gap-3 overflow-hidden">
+          <div className="flex size-9 shrink-0 items-center justify-center bg-sidebar-primary text-sidebar-primary-foreground">
+            <Wallet className="size-5" />
+          </div>
+          <span className="truncate text-base font-semibold tracking-tight group-data-[collapsible=icon]:hidden">
+            {brandName}
+          </span>
         </div>
-        <span className="text-xl font-bold tracking-tight">{brandName}</span>
-      </div>
+      </SidebarHeader>
 
-      {/* Navigation Links */}
-      <nav className="flex-1 space-y-3">
-        {navigation.map((item) => {
-          const isActive = pathname === item.href;
-          const Icon = item.icon;
-          const linkClassName = cn(
-            "flex items-center gap-3 px-3 py-2 text-sm font-medium transition-colors",
-            isActive
-              ? "bg-primary text-primary-foreground"
-              : "text-muted-foreground hover:bg-muted hover:text-foreground",
-          );
+      <SidebarContent>
+        <SidebarGroup>
+          <SidebarMenu>
+            {navigation.map((item) => {
+              const Icon = item.icon;
+              const content = (
+                <>
+                  <Icon />
+                  <span>{item.name}</span>
+                </>
+              );
+              const link = renderLink
+                ? renderLink({ href: item.href, children: content })
+                : <a href={item.href}>{content}</a>;
 
-          const content = (
-            <>
-              <Icon className="h-5 w-5" />
-              {item.name}
-            </>
-          );
-
-          if (renderLink) {
-            return (
-              <div key={item.href}>
-                {renderLink({
-                  href: item.href,
-                  className: linkClassName,
-                  children: content,
-                })}
-              </div>
-            );
-          }
-
-          return (
-            <a key={item.href} href={item.href} className={linkClassName}>
-              {content}
-            </a>
-          );
-        })}
-      </nav>
-    </aside>
+              return (
+                <SidebarMenuItem key={item.href}>
+                  <SidebarMenuButton
+                    isActive={pathname === item.href}
+                    tooltip={item.name}
+                    className="h-10 text-sm"
+                    render={link}
+                  />
+                </SidebarMenuItem>
+              );
+            })}
+          </SidebarMenu>
+        </SidebarGroup>
+      </SidebarContent>
+    </Sidebar>
   );
 }

@@ -13,6 +13,7 @@ import {
 } from "./ui/dropdown-menu";
 import { Building2, User, LogOut, Loader2 } from "lucide-react";
 import { useTransition } from "react";
+import { SidebarTrigger } from "./ui/sidebar";
 
 export interface HeaderProps {
   currentApp: "user" | "merchant";
@@ -41,14 +42,15 @@ export function Header({
   };
 
   return (
-    <header className="flex h-16 items-center justify-between border-b bg-card px-6">
-      <div className="flex items-center gap-4">
-        <h1 className="text-lg font-semibold capitalize">
+    <header className="flex h-16 min-w-0 items-center justify-between border-b bg-card px-3 sm:px-6">
+      <div className="flex min-w-0 items-center gap-2 sm:gap-4">
+        <SidebarTrigger className="shrink-0" />
+        <h1 className="truncate text-base font-semibold capitalize sm:text-lg">
           {currentApp === "merchant" ? "Merchant Portal" : "Personal Wallet"}
         </h1>
       </div>
 
-      <div className="flex items-center gap-4">
+      <div className="flex shrink-0 items-center gap-2 sm:gap-4">
         {/* App Switcher */}
         <Button
           variant="outline"
@@ -62,12 +64,14 @@ export function Header({
           ) : currentApp === "merchant" ? (
             <>
               <User className="h-4 w-4" />
-              Switch to User Profile
+              <span className="hidden sm:inline">Switch to User Profile</span>
             </>
           ) : (
             <>
               <Building2 className="h-4 w-4" />
-              Switch to Merchant Profile
+              <span className="hidden sm:inline">
+                Switch to Merchant Profile
+              </span>
             </>
           )}
         </Button>
