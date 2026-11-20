@@ -20,7 +20,7 @@ export default async function DashboardPage() {
   const { wallet, recentTransactions, monthlyStats } = await getDashboardData();
 
   return (
-    <div className="p-6 space-y-8 w-full max-w-7xl mx-auto">
+    <div className="mx-auto w-full max-w-7xl space-y-6">
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
@@ -68,8 +68,8 @@ export default async function DashboardPage() {
             </div>
 
             {/* Quick Summary Badges */}
-            <div className="grid grid-cols-4 gap-4 pt-4 border-t border-border/50">
-              <div className="flex items-center gap-3">
+            <div className="flex flex-col gap-4 border-t border-border/50 pt-4 sm:flex-row">
+              <div className="flex min-w-0 items-center gap-3">
                 <div className="p-2 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
                   <ArrowDownLeft className="h-4 w-4" />
                 </div>
@@ -80,7 +80,7 @@ export default async function DashboardPage() {
                   </p>
                 </div>
               </div>
-              <div className="flex items-center gap-3">
+              <div className="flex min-w-0 items-center gap-3">
                 <div className="p-2 rounded-lg bg-rose-500/10 text-rose-600 dark:text-rose-400">
                   <ArrowUpRight className="h-4 w-4" />
                 </div>

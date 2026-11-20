@@ -36,10 +36,10 @@ export function AppSidebar({
 }: AppSidebarProps) {
   return (
     <Sidebar collapsible="icon">
-      <SidebarHeader className="p-3">
-        <div className="flex h-10 items-center gap-3 overflow-hidden">
-          <div className="flex size-9 shrink-0 items-center justify-center bg-sidebar-primary text-sidebar-primary-foreground">
-            <Wallet className="size-5" />
+      <SidebarHeader className="p-3 group-data-[collapsible=icon]:p-2">
+        <div className="flex h-10 items-center gap-3 overflow-hidden group-data-[collapsible=icon]:justify-center">
+          <div className="flex size-9 shrink-0 items-center justify-center bg-sidebar-primary text-sidebar-primary-foreground group-data-[collapsible=icon]:size-8 group-data-[collapsible=icon]:bg-transparent group-data-[collapsible=icon]:text-sidebar-primary">
+            <Wallet className="size-5 group-data-[collapsible=icon]:size-6" />
           </div>
           <span className="truncate text-base font-semibold tracking-tight group-data-[collapsible=icon]:hidden">
             {brandName}
