@@ -2,6 +2,8 @@
   "name": "wallet",
   "private": true,
   "scripts": {
+    "setup": "docker compose up -d --wait && pnpm install && pnpm --filter @wallet/db db:deploy && pnpm --filter @wallet/db db:seed",
+    "db:seed": "pnpm --filter @wallet/db db:seed",
     "build": "turbo run build",
     "dev": "turbo run dev",
     "lint": "turbo run lint",
@@ -14,5 +16,7 @@
     "typescript": "catalog:"
   },
   "packageManager": "pnpm@11.15.1",
-  "engines": { "node": "^20.19.0 || ^22.12.0 || >=24.0.0" }
+  "engines": { 
+    "node": "^26.5.0" 
+  }
 }

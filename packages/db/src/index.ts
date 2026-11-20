@@ -29,3 +29,4 @@ if (process.env.NODE_ENV !== "production") {
 }
 
 export { Prisma } from "@prisma/client";
+export { TxnStatus, TxnType } from "@prisma/client";

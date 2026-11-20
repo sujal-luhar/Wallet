@@ -22,7 +22,7 @@ catalog:
   typescript: 5.9.2
 
   # Standardized Node runtime types matching engine target
-  "@types/node": ^20.19.0
+  "@types/node": ^26.5.0
 
   # Tooling & Code Quality
   eslint: ^9.39.1
@@ -52,4 +52,11 @@ catalog:
   dotenv: ^17.4.2
   tsx: ^4.23.1
 
-minimumReleaseAge: 0
+
+nodeVersion: 26.13.1 
+# matching with docker container's node version to check 
+# dependency compability of new package installations
+# againt already running container on EC2
+
+engineStrict: true # it is paired with `nodeVersion`
+pmOnFail: download

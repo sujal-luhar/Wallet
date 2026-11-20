@@ -1,70 +1,49 @@
-import { db } from "../src/index.js";
+import "dotenv/config";
+import bcrypt from "bcrypt";
+import { db, TxnStatus, TxnType } from "../src/index.js";
+
+const daysAgo = (days: number): Date => {
+  const date = new Date();
+  date.setDate(date.getDate() - days);
+  return date;
+};
 
 async function main() {
-  console.log("🌱 Starting database seed...");
+  console.log("Seeding wallet database...");
 
-  // 1. Clean existing records (in reverse dependency order)
+  // Delete in dependency order so foreign keys and RESTRICT constraints are satisfied
   await db.transaction.deleteMany();
   await db.wallet.deleteMany();
   await db.merchantProfile.deleteMany();
+  await db.account.deleteMany();
+  await db.verificationToken.deleteMany();
   await db.user.deleteMany();
 
-  console.log("🧹 Cleaned old database records.");
+  const passwordHash = await bcrypt.hash("Admin1", 10);
 
-  // 2. Create User 1: Alice (Regular User)
-  const alice = await db.user.create({
+  // 1. Primary Admin User (with User Wallet + MerchantProfile + Merchant Wallet)
+  const adminUser = await db.user.create({
     data: {
-      name: "Alice Smith",
-      email: "alice@example.com",
-      phone: "+919876543210",
-      password: "hashed_password_alice",
+      name: "Admin Merchant",
+      email: "admin@email.com",
+      phone: "+919000000001",
+      emailVerified: new Date(),
+      password: passwordHash,
       Wallet: {
         create: {
-          balance: BigInt(1000000), // ₹10,000.00 (stored in paise)
-          currency: "INR",
-        },
-      },
-    },
-    include: { Wallet: true },
-  });
-
-  // 3. Create User 2: Bob (Regular User)
-  const bob = await db.user.create({
-    data: {
-      name: "Bob Jones",
-      email: "bob@example.com",
-      phone: "+919876543211",
-      password: "hashed_password_bob",
-      Wallet: {
-        create: {
-          balance: BigInt(500000), // ₹5,000.00
-          currency: "INR",
-        },
-      },
-    },
-    include: { Wallet: true },
-  });
-
-  // 4. Create User 3: Charlie (Merchant User)
-  const charlie = await db.user.create({
-    data: {
-      name: "Charlie Brown",
-      email: "charlie@electronics.com",
-      phone: "+919876543212",
-      password: "hashed_password_charlie",
-      Wallet: {
-        create: {
-          balance: BigInt(100000), // ₹1,000.00 personal balance
+          balance: 1500000n, // ₹15,000.00
+          locked: 200000n,   // ₹2,000.00 locked in pending/processing flow
           currency: "INR",
         },
       },
       MerchantProfile: {
         create: {
-          businessName: "Charlie's Tech Store",
-          supportEmail: "support@charliestech.com",
+          businessName: "Admin's Flagship Store",
+          supportEmail: "support@adminstore.com",
           Wallet: {
             create: {
-              balance: BigInt(2500000), // ₹25,000.00 business balance
+              balance: 4250000n, // ₹42,500.00 merchant balance
+              locked: 50000n,    // ₹500.00 locked
               currency: "INR",
             },
           },
@@ -79,61 +58,232 @@ async function main() {
     },
   });
 
-  console.log("👤 Created test users & wallets:");
-  console.log(`   - Alice (ID: ${alice.id})`);
-  console.log(`   - Bob (ID: ${bob.id})`);
-  console.log(`   - Charlie Merchant (ID: ${charlie.MerchantProfile?.id})`);
-
-  // 5. Create Sample Transactions
-  if (alice.Wallet && bob.Wallet && charlie.MerchantProfile?.Wallet) {
-    // Transaction A: Bank Deposit -> Alice Wallet
-    await db.transaction.create({
-      data: {
-        amount: BigInt(1000000),
-        type: "DEPOSIT",
-        status: "SUCCESS",
-        destinationWalletId: alice.Wallet.id,
-        externalReferenceId: "HDFC_BANK_REF_998811",
+  // 2. Onboarding Test Account (no MerchantProfile so user can create one)
+  const newAdminUser = await db.user.create({
+    data: {
+      name: "New Merchant Tester",
+      email: "admin-new@gmail.com",
+      phone: "+919000000002",
+      emailVerified: new Date(),
+      password: passwordHash,
+      Wallet: {
+        create: {
+          balance: 750000n, // ₹7,500.00
+          locked: 0n,
+          currency: "INR",
+        },
       },
-    });
+    },
+    include: { Wallet: true },
+  });
 
-    // Transaction B: Alice -> Bob (P2P Transfer)
-    await db.transaction.create({
-      data: {
-        amount: BigInt(200000), // ₹2,000.00
-        type: "P2P_TRANSFER",
-        status: "SUCCESS",
-        sourceWalletId: alice.Wallet.id,
-        destinationWalletId: bob.Wallet.id,
-        idempotencyKey: "p2p_txn_alice_to_bob_001",
+  // 3. Counterparty Customer User (for past-week merchant payments & P2P transfers)
+  const customerUser = await db.user.create({
+    data: {
+      name: "Rohan Patel",
+      email: "customer@example.com",
+      phone: "+919000000003",
+      emailVerified: new Date(),
+      password: passwordHash,
+      Wallet: {
+        create: {
+          balance: 2000000n, // ₹20,000.00
+          locked: 0n,
+          currency: "INR",
+        },
       },
-    });
+    },
+    include: { Wallet: true },
+  });
 
-    // Transaction C: Bob -> Charlie Tech Store (Merchant Payment)
-    await db.transaction.create({
-      data: {
-        amount: BigInt(150000), // ₹1,500.00
-        type: "MERCHANT_PAYMENT",
-        status: "SUCCESS",
-        sourceWalletId: bob.Wallet.id,
-        destinationWalletId: charlie.MerchantProfile.Wallet.id,
-        idempotencyKey: "merchant_pay_bob_to_charlie_001",
+  const adminWallet = adminUser.Wallet!;
+  const merchantWallet = adminUser.MerchantProfile!.Wallet!;
+  const newUserWallet = newAdminUser.Wallet!;
+  const customerWallet = customerUser.Wallet!;
+
+  // Transactions covering TxnType (DEPOSIT, WITHDRAWAL, P2P_TRANSFER, MERCHANT_PAYMENT, REFUND)
+  // and TxnStatus (PENDING, PROCESSING, SUCCESS, FAILED, REFUNDED)
+  await db.transaction.createMany({
+    data: [
+      // --- Bank Deposits (destinationWalletId only) ---
+      {
+        amount: 1000000n, // ₹10,000.00
+        type: TxnType.DEPOSIT,
+        status: TxnStatus.SUCCESS,
+        destinationWalletId: adminWallet.id,
+        idempotencyKey: "seed_deposit_admin_success_1",
+        externalReferenceId: "EXT_DEP_SUCCESS_1001",
+        createdAt: daysAgo(6),
       },
-    });
+      {
+        amount: 250000n, // ₹2,500.00
+        type: TxnType.DEPOSIT,
+        status: TxnStatus.PENDING,
+        destinationWalletId: adminWallet.id,
+        idempotencyKey: "seed_deposit_admin_pending_1",
+        externalReferenceId: "EXT_DEP_PENDING_1002",
+        createdAt: daysAgo(2),
+      },
+      {
+        amount: 300000n, // ₹3,000.00
+        type: TxnType.DEPOSIT,
+        status: TxnStatus.PROCESSING,
+        destinationWalletId: adminWallet.id,
+        idempotencyKey: "seed_deposit_admin_processing_1",
+        externalReferenceId: "EXT_DEP_PROCESSING_1003",
+        createdAt: daysAgo(1),
+      },
+      {
+        amount: 500000n, // ₹5,000.00
+        type: TxnType.DEPOSIT,
+        status: TxnStatus.FAILED,
+        destinationWalletId: adminWallet.id,
+        idempotencyKey: "seed_deposit_admin_failed_1",
+        externalReferenceId: "EXT_DEP_FAILED_1004",
+        failureReason: "Bank gateway timeout",
+        createdAt: daysAgo(4),
+      },
 
-    console.log(
-      "💸 Created 3 sample transactions (Deposit, P2P, Merchant Payment).",
-    );
-  }
+      // --- Bank Withdrawals (sourceWalletId only) ---
+      {
+        amount: 400000n, // ₹4,000.00
+        type: TxnType.WITHDRAWAL,
+        status: TxnStatus.SUCCESS,
+        sourceWalletId: adminWallet.id,
+        idempotencyKey: "seed_withdraw_admin_success_1",
+        externalReferenceId: "EXT_WDR_SUCCESS_2001",
+        createdAt: daysAgo(5),
+      },
+      {
+        amount: 150000n, // ₹1,500.00
+        type: TxnType.WITHDRAWAL,
+        status: TxnStatus.PENDING,
+        sourceWalletId: adminWallet.id,
+        idempotencyKey: "seed_withdraw_admin_pending_1",
+        externalReferenceId: "EXT_WDR_PENDING_2002",
+        createdAt: daysAgo(1),
+      },
+      {
+        amount: 200000n, // ₹2,000.00
+        type: TxnType.WITHDRAWAL,
+        status: TxnStatus.PROCESSING,
+        sourceWalletId: adminWallet.id,
+        idempotencyKey: "seed_withdraw_admin_processing_1",
+        externalReferenceId: "EXT_WDR_PROCESSING_2003",
+        createdAt: daysAgo(1),
+      },
+      {
+        amount: 99999900n,
+        type: TxnType.WITHDRAWAL,
+        status: TxnStatus.FAILED,
+        sourceWalletId: adminWallet.id,
+        idempotencyKey: "seed_withdraw_admin_failed_1",
+        externalReferenceId: "EXT_WDR_FAILED_2004",
+        failureReason: "Insufficient available balance",
+        createdAt: daysAgo(3),
+      },
 
-  console.log("✅ Seeding completed successfully!");
+      // --- P2P Transfers (distinct sourceWalletId & destinationWalletId) ---
+      {
+        amount: 120000n, // ₹1,200.00
+        type: TxnType.P2P_TRANSFER,
+        status: TxnStatus.SUCCESS,
+        sourceWalletId: customerWallet.id,
+        destinationWalletId: adminWallet.id,
+        idempotencyKey: "seed_p2p_customer_to_admin_success_1",
+        createdAt: daysAgo(5),
+      },
+      {
+        amount: 80000n, // ₹800.00
+        type: TxnType.P2P_TRANSFER,
+        status: TxnStatus.PENDING,
+        sourceWalletId: adminWallet.id,
+        destinationWalletId: newUserWallet.id,
+        idempotencyKey: "seed_p2p_admin_to_new_pending_1",
+        createdAt: daysAgo(2),
+      },
+      {
+        amount: 60000n, // ₹600.00
+        type: TxnType.P2P_TRANSFER,
+        status: TxnStatus.PROCESSING,
+        sourceWalletId: adminWallet.id,
+        destinationWalletId: customerWallet.id,
+        idempotencyKey: "seed_p2p_admin_to_customer_processing_1",
+        createdAt: daysAgo(1),
+      },
+      {
+        amount: 50000n, // ₹500.00
+        type: TxnType.P2P_TRANSFER,
+        status: TxnStatus.FAILED,
+        sourceWalletId: adminWallet.id,
+        destinationWalletId: customerWallet.id,
+        idempotencyKey: "seed_p2p_admin_to_customer_failed_1",
+        failureReason: "Recipient account temporarily restricted",
+        createdAt: daysAgo(3),
+      },
+
+      // --- Merchant Payments (past week, received payment, and refunded payment + refund tx) ---
+      {
+        amount: 175000n, // ₹1,750.00 kept payment from customer in past week
+        type: TxnType.MERCHANT_PAYMENT,
+        status: TxnStatus.SUCCESS,
+        sourceWalletId: customerWallet.id,
+        destinationWalletId: merchantWallet.id,
+        idempotencyKey: "seed_merchant_pay_kept_success_1",
+        createdAt: daysAgo(4),
+      },
+      {
+        amount: 95000n, // ₹950.00 payment from customer that was refunded
+        type: TxnType.MERCHANT_PAYMENT,
+        status: TxnStatus.REFUNDED,
+        sourceWalletId: customerWallet.id,
+        destinationWalletId: merchantWallet.id,
+        idempotencyKey: "seed_merchant_pay_refunded_1",
+        createdAt: daysAgo(3),
+      },
+      {
+        amount: 95000n, // ₹950.00 refund sent back from merchant wallet to customer wallet
+        type: TxnType.REFUND,
+        status: TxnStatus.SUCCESS,
+        sourceWalletId: merchantWallet.id,
+        destinationWalletId: customerWallet.id,
+        idempotencyKey: "seed_merchant_refund_success_1",
+        createdAt: daysAgo(2),
+      },
+      {
+        amount: 125000n, // ₹1,250.00 pending merchant payment
+        type: TxnType.MERCHANT_PAYMENT,
+        status: TxnStatus.PENDING,
+        sourceWalletId: customerWallet.id,
+        destinationWalletId: merchantWallet.id,
+        idempotencyKey: "seed_merchant_pay_pending_1",
+        createdAt: daysAgo(1),
+      },
+      {
+        amount: 65000n, // ₹650.00 failed merchant payment
+        type: TxnType.MERCHANT_PAYMENT,
+        status: TxnStatus.FAILED,
+        sourceWalletId: customerWallet.id,
+        destinationWalletId: merchantWallet.id,
+        idempotencyKey: "seed_merchant_pay_failed_1",
+        failureReason: "Payment authorization declined",
+        createdAt: daysAgo(2),
+      },
+    ],
+  });
+
+  console.log("Seed complete.");
+  console.log("Credentials (password for all): Admin1");
+  console.log("  - admin@email.com (has wallet + merchant profile + full txn history)");
+  console.log("  - admin-new@gmail.com (ready for merchant onboarding)");
+  console.log("  - customer@example.com (counterparty user)");
 }
 
 main()
-  .catch((e) => {
-    console.error("❌ Seeding failed:", e);
+  .catch((err) => {
+    console.error("Seed failed:", err);
     process.exit(1);
   })
   .finally(async () => {
-    // Disconnect prisma client
+    await db.$disconnect();
   });
