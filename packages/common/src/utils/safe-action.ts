@@ -17,7 +17,6 @@ export function safeAction<TInput, TOutput extends TxActionResponse>(
       const result = await action(parsed);
       return result;
     } catch (err: unknown) {
-
       if (err instanceof ZodError) {
         const message = err.issues.map((e) => e.message).join(", ");
         return { success: false, error: message };
@@ -29,7 +28,10 @@ export function safeAction<TInput, TOutput extends TxActionResponse>(
       }
 
       console.error("[Server Action Error]:", err);
-      return { success: false, error: "Something went wrong. Please try again." };
+      return {
+        success: false,
+        error: "Something went wrong. Please try again.",
+      };
     }
   };
 }

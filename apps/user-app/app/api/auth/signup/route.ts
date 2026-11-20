@@ -10,7 +10,10 @@ export async function POST(req: Request) {
   try {
     body = await req.json();
   } catch {
-    return NextResponse.json({ message: "Invalid request body." }, { status: 400 });
+    return NextResponse.json(
+      { message: "Invalid request body." },
+      { status: 400 },
+    );
   }
 
   const parsed = signUpSchema.safeParse(body);
@@ -37,22 +40,29 @@ export async function POST(req: Request) {
           create: {
             balance: BigInt(0),
             locked: BigInt(0),
-            currency: "INR"
-          }
+            currency: "INR",
+          },
         },
       },
     });
   } catch (e) {
-    if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2002") {
+    if (
+      e instanceof Prisma.PrismaClientKnownRequestError &&
+      e.code === "P2002"
+    ) {
       return NextResponse.json(
-        { message: "An account with this email or phone number already exists." },
+        {
+          message: "An account with this email or phone number already exists.",
+        },
         { status: 409 },
       );
     }
     console.error("SIGNUP_ERROR:", e);
-    return NextResponse.json({ message: "Internal server error" }, { status: 500 });
+    return NextResponse.json(
+      { message: "Internal server error" },
+      { status: 500 },
+    );
   }
-
 
   try {
     const token = await generateVerificationToken(email);

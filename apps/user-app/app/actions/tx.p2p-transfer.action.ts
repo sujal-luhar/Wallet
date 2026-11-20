@@ -37,7 +37,9 @@ async function executeP2PTransfer({
     throw new AppError("You cannot send money to your own wallet.");
   }
 
-  const resume = (tx: NonNullable<Awaited<ReturnType<typeof checkIdempotency>>>) => {
+  const resume = (
+    tx: NonNullable<Awaited<ReturnType<typeof checkIdempotency>>>,
+  ) => {
     // Same key must mean same intent, and must belong to this wallet.
     const sameIntent =
       tx.type === "P2P_TRANSFER" &&
@@ -46,7 +48,8 @@ async function executeP2PTransfer({
       tx.amount === amountPaise;
 
     // Deliberately generic: don't reveal that the key exists for someone else.
-    if (!sameIntent) throw new AppError("Invalid request. Please start a new transfer.");
+    if (!sameIntent)
+      throw new AppError("Invalid request. Please start a new transfer.");
 
     if (tx.status === "SUCCESS" || tx.status === "PENDING") {
       return { success: true as const, id: tx.id };
@@ -72,10 +75,7 @@ async function executeP2PTransfer({
 
       const currentSenderWallet = senderWallets[0];
 
-      if (
-        !currentSenderWallet ||
-        currentSenderWallet.balance < amountPaise
-      ) {
+      if (!currentSenderWallet || currentSenderWallet.balance < amountPaise) {
         throw new AppError("Insufficient wallet balance.");
       }
 
@@ -112,7 +112,10 @@ async function executeP2PTransfer({
     return { success: true, id: transaction.id };
   } catch (e) {
     // Lost the race against a concurrent request with the same key.
-    if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2002") {
+    if (
+      e instanceof Prisma.PrismaClientKnownRequestError &&
+      e.code === "P2002"
+    ) {
       const winner = await checkIdempotency(idempotencyKey);
       if (winner) return resume(winner);
     }

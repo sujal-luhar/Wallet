@@ -51,8 +51,8 @@ export function SettleToBankCard({ availableBalance }: SettleToBankCardProps) {
       try {
         const res = await fetch(
           `/api/transaction/status?txId=${encodeURIComponent(activeTxId)}`,
-        { cache: "no-store" },
-      );
+          { cache: "no-store" },
+        );
         const data = await res.json();
 
         if (!res.ok) throw new Error(data.error);

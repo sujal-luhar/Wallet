@@ -62,7 +62,7 @@ async function getMonthlyTransactionStats(walletId: string | undefined) {
 
 export default async function getDashboardData() {
   const wallet = await getWalletBalance();
-  const limit = 5
+  const limit = 5;
 
   const [recentTransactions, monthlyStats] = await Promise.all([
     getRecentTransactions(limit),

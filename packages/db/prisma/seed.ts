@@ -32,7 +32,7 @@ async function main() {
       Wallet: {
         create: {
           balance: 1500000n, // ₹15,000.00
-          locked: 200000n,   // ₹2,000.00 locked in pending/processing flow
+          locked: 200000n, // ₹2,000.00 locked in pending/processing flow
           currency: "INR",
         },
       },
@@ -43,7 +43,7 @@ async function main() {
           Wallet: {
             create: {
               balance: 4250000n, // ₹42,500.00 merchant balance
-              locked: 50000n,    // ₹500.00 locked
+              locked: 50000n, // ₹500.00 locked
               currency: "INR",
             },
           },
@@ -274,7 +274,9 @@ async function main() {
 
   console.log("Seed complete.");
   console.log("Credentials (password for all): Admin1");
-  console.log("  - admin@email.com (has wallet + merchant profile + full txn history)");
+  console.log(
+    "  - admin@email.com (has wallet + merchant profile + full txn history)",
+  );
   console.log("  - admin-new@gmail.com (ready for merchant onboarding)");
   console.log("  - customer@example.com (counterparty user)");
 }

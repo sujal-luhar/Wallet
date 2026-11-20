@@ -21,7 +21,11 @@ export default function DepositCard() {
     value: v,
   }));
 
-  const attempt = useRef<{ key: string; amount: number; method: string } | null>(null);
+  const attempt = useRef<{
+    key: string;
+    amount: number;
+    method: string;
+  } | null>(null);
 
   const getKey = () => {
     const a = attempt.current;
@@ -41,7 +45,11 @@ export default function DepositCard() {
 
     setError(null);
     startTransition(async () => {
-      const res = await initDepositAction({ amount, paymentMethod, idempotencyKey: getKey() });
+      const res = await initDepositAction({
+        amount,
+        paymentMethod,
+        idempotencyKey: getKey(),
+      });
       if (!res.success) {
         attempt.current = null; // definitive rejection → next try gets a fresh key
         setError(res.error);
@@ -99,10 +107,11 @@ export default function DepositCard() {
           ].map((method) => (
             <div
               key={method.id}
-              className={`flex items-center justify-between border p-3 cursor-pointer rounded-none transition-colors ${paymentMethod === method.id
-                ? "border-primary bg-primary/5"
-                : "hover:bg-muted/50"
-                }`}
+              className={`flex items-center justify-between border p-3 cursor-pointer rounded-none transition-colors ${
+                paymentMethod === method.id
+                  ? "border-primary bg-primary/5"
+                  : "hover:bg-muted/50"
+              }`}
               onClick={() => !isPending && setPaymentMethod(method.id)}
             >
               <div className="flex items-center gap-3">

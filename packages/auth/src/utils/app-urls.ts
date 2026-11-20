@@ -1,4 +1,4 @@
-// Apply this functionality at the end  
+// Apply this functionality at the end
 
 const TRUSTED_APP_ORIGINS = new Set([
   "http://localhost:3000",
@@ -17,10 +17,7 @@ export function getAllowedAppUrl(
     throw new Error("Untrusted application origin");
   }
 
-  if (
-    process.env.NODE_ENV === "production" &&
-    parsed.protocol !== "https:"
-  ) {
+  if (process.env.NODE_ENV === "production" && parsed.protocol !== "https:") {
     throw new Error("HTTPS is required in production");
   }
 

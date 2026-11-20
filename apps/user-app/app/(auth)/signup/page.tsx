@@ -44,8 +44,9 @@ function SignupSuccessView({
 
       {resendMessage && (
         <p
-          className={`mb-4 text-xs ${resendMessage.type === "success" ? "text-green-600" : "text-red-600"
-            }`}
+          className={`mb-4 text-xs ${
+            resendMessage.type === "success" ? "text-green-600" : "text-red-600"
+          }`}
         >
           {resendMessage.text}
         </p>
@@ -117,7 +118,6 @@ export default function SignupPage() {
         console.error(err);
         setError("Network error. Please try again.");
       }
-
     });
   };
 

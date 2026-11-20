@@ -42,7 +42,9 @@ async function executeMerchantPayment({
     );
   }
 
-  const resume = (tx: NonNullable<Awaited<ReturnType<typeof checkIdempotency>>>) => {
+  const resume = (
+    tx: NonNullable<Awaited<ReturnType<typeof checkIdempotency>>>,
+  ) => {
     // Same key must mean same intent, and must belong to this wallet.
     const sameIntent =
       tx.type === "MERCHANT_PAYMENT" &&
@@ -51,7 +53,8 @@ async function executeMerchantPayment({
       tx.amount === amountPaise;
 
     // Deliberately generic: don't reveal that the key exists for someone else.
-    if (!sameIntent) throw new AppError("Invalid request. Please start a new payment.");
+    if (!sameIntent)
+      throw new AppError("Invalid request. Please start a new payment.");
 
     if (tx.status === "SUCCESS" || tx.status === "PENDING") {
       return { success: true as const, id: tx.id };
@@ -114,7 +117,10 @@ async function executeMerchantPayment({
     return { success: true, id: transaction.id };
   } catch (e) {
     // Lost the race against a concurrent request with the same key.
-    if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2002") {
+    if (
+      e instanceof Prisma.PrismaClientKnownRequestError &&
+      e.code === "P2002"
+    ) {
       const winner = await checkIdempotency(idempotencyKey);
       if (winner) return resume(winner);
     }

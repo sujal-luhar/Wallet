@@ -15,7 +15,8 @@ export async function resolveWalletAndAuth(isMerchant = false) {
       where: { userId: session.user.id },
       select: { Wallet: { select: { id: true } } },
     });
-    if (!merchantProfile?.Wallet) throw new AppError("Merchant wallet not found.");
+    if (!merchantProfile?.Wallet)
+      throw new AppError("Merchant wallet not found.");
     return { userId: session.user.id, walletId: merchantProfile.Wallet.id };
   } else {
     const user = await db.user.findUnique({

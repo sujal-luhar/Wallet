@@ -119,14 +119,14 @@ app.post("/mock-bank/payout", authenticatePayout, async (req, res) => {
       select: {
         id: true,
         amount: true,
-      }
-    })
+      },
+    });
 
     if (!transaction) {
       return res.status(409).json({
         success: false,
         error: "Transaction not found or already processed",
-      })
+      });
     }
 
     if (transaction.amount !== BigInt(amount)) {
@@ -250,7 +250,7 @@ app.post("/mock-bank/process", async (req, res) => {
             where: {
               id: txId,
               status: "PENDING",
-              type: "DEPOSIT"
+              type: "DEPOSIT",
             },
             data: { status: "SUCCESS" },
           });
@@ -281,7 +281,7 @@ app.post("/mock-bank/process", async (req, res) => {
       where: {
         id: txId,
         status: "PENDING",
-        type: "DEPOSIT"
+        type: "DEPOSIT",
       },
       data: { status: "FAILED" },
     });

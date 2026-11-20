@@ -21,7 +21,9 @@ async function executeSettleToBank({
   const { walletId } = await resolveWalletAndAuth(true);
   const amountPaise = BigInt(Math.round(amount * 100));
 
-  const resume = (tx: NonNullable<Awaited<ReturnType<typeof checkIdempotency>>>) => {
+  const resume = (
+    tx: NonNullable<Awaited<ReturnType<typeof checkIdempotency>>>,
+  ) => {
     // Same key must mean same intent, and must belong to this wallet.
     const sameIntent =
       tx.type === "WITHDRAWAL" &&
@@ -30,7 +32,8 @@ async function executeSettleToBank({
       tx.amount === amountPaise;
 
     // Deliberately generic: don't reveal that the key exists for someone else.
-    if (!sameIntent) throw new AppError("Invalid request. Please start a new settlement.");
+    if (!sameIntent)
+      throw new AppError("Invalid request. Please start a new settlement.");
 
     if (tx.status === "PENDING" || tx.status === "PROCESSING") {
       return { success: true as const, id: tx.id };
@@ -117,7 +120,10 @@ async function executeSettleToBank({
     return { success: true, id: transactionId };
   } catch (e) {
     // Lost the race against a concurrent request with the same key.
-    if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2002") {
+    if (
+      e instanceof Prisma.PrismaClientKnownRequestError &&
+      e.code === "P2002"
+    ) {
       const winner = await checkIdempotency(idempotencyKey);
       if (winner) return resume(winner);
     }

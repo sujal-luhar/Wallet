@@ -58,9 +58,11 @@ export function AppSidebar({
                   <span>{item.name}</span>
                 </>
               );
-              const link = renderLink
-                ? renderLink({ href: item.href, children: content })
-                : <a href={item.href}>{content}</a>;
+              const link = renderLink ? (
+                renderLink({ href: item.href, children: content })
+              ) : (
+                <a href={item.href}>{content}</a>
+              );
 
               return (
                 <SidebarMenuItem key={item.href}>
