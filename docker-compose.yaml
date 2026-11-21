@@ -1,0 +1,40 @@
+name: wallet
+
+services:
+  postgres:
+    image: postgres:19-alpine
+    container_name: wallet-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: wallet
+      POSTGRES_PASSWORD: wallet
+      POSTGRES_DB: wallet
+    ports:
+      # Bound to localhost only. 5433 avoids clashing with a local Postgres on 5432.
+      - "127.0.0.1:5433:5432"
+    volumes:
+      # Postgres 18+ images keep versioned data dirs under /var/lib/postgresql
+      - wallet_pgdata:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U wallet -d wallet"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 5s
+
+  # Catches all outgoing email (verification links etc.). No SMTP keys needed.
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: wallet-mailpit
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:1025:1025" # SMTP
+      - "127.0.0.1:8025:8025" # Web inbox
+    healthcheck:
+      test: ["CMD", "/mailpit", "readyz"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  wallet_pgdata:

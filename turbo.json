@@ -18,7 +18,8 @@
     "NEXT_PUBLIC_USER_APP_URL",
     "NEXT_PUBLIC_MERCHANT_APP_URL",
     "NEXT_PUBLIC_MOCK_BANK_URL",
-    "MOCK_BANK_API_SECRET"
+    "MOCK_BANK_API_SECRET",
+    "ALLOWED_DEV_ORIGINS"
   ],
   "tasks": {
     "generate": {

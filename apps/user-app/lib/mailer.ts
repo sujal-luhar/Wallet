@@ -1,13 +1,18 @@
 import nodemailer from "nodemailer";
 
+// Mailpit (local dev) needs no auth; real SMTP providers do.
+const smtpUser = process.env.SMTP_USER;
+
 const transporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST,
   port: Number(process.env.SMTP_PORT) || 587,
   secure: process.env.SMTP_SECURE === "true",
-  auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS,
-  },
+  ...(smtpUser
+    ? { auth: { 
+      user: smtpUser, 
+      pass: process.env.SMTP_PASS 
+    } }
+    : {}),
 });
 
 const domain = process.env.NEXTAUTH_URL || "http://localhost:3002";
@@ -16,7 +21,7 @@ export const sendVerificationEmail = async (email: string, token: string) => {
   const confirmLink = `${domain}/verify-email?token=${token}`;
 
   await transporter.sendMail({
-    from: process.env.EMAIL_FROM || '"Wallet App" <no-reply@wallet.com>',
+    from: process.env.EMAIL_FROM || '"Wallet App" <no-reply@wallet.local>',
     to: email,
     subject: "Confirm your email address",
     html: `

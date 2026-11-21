@@ -16,17 +16,18 @@
     "generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
     "db:deploy": "prisma migrate deploy",
-    "db:seed": "dotenv -e ./.env -- tsx prisma/seed.ts",
+    "db:seed": "tsx prisma/seed.ts",
     "db:studio": "prisma studio",
     "lint": "eslint .",
     "check-types": "tsc --noEmit"
   },
   "keywords": [],
   "author": "",
-  "license": "ISC",
+  "license": "MIT",
   "type": "module",
   "devDependencies": {
     "@types/node": "catalog:",
+    "@types/pg": "catalog:",
     "@wallet/typescript-config": "workspace:*",
     "@wallet/eslint-config": "workspace:*",
     "@types/bcrypt": "catalog:",
@@ -37,8 +38,10 @@
     "typescript": "catalog:"
   },
   "dependencies": {
+    "@prisma/adapter-pg": "catalog:",
     "@prisma/client": "catalog:",
     "@prisma/extension-accelerate": "^3.0.1",
-    "dotenv": "catalog:"
+    "dotenv": "catalog:",
+    "pg": "catalog:"
   }
 }
