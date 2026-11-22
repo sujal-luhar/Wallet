@@ -169,17 +169,27 @@ if (shouldSeed) {
 
 // ── Done ────────────────────────────────────────────────────────────────────
 console.log(`
+  ======================
+
 \x1b[32m✔ All set!\x1b[0m Start everything with:
 
-    pnpm dev
+  || pnpm dev ||
 
   user-app       http://localhost:3002
   merchant-app   http://localhost:3003
   mock-bank      http://localhost:3001
   Mailpit inbox  http://localhost:8025
 
-Demo login (password for all: Admin1)
+Demo login 
+
+  (password for all: Admin1)
+
   admin@email.com        wallet + merchant profile + transactions
   admin-new@gmail.com    ready for merchant onboarding
   customer@example.com   counterparty user
+
+  If you want to signup with new account,
+  Open mailpit to catch verification emails.
+
+  ======================
 `);
