@@ -70,7 +70,21 @@ if (composeCheck.error || composeCheck.status !== 0) {
 }
 const daemonCheck = run("docker", ["info"], { capture: true });
 if (daemonCheck.status !== 0) {
-  fail("The Docker daemon is not running.", "Start Docker Desktop / the docker service and re-run.");
+  const err = (daemonCheck.stderr || "").toLowerCase();
+  const isLinux = process.platform === "linux";
+
+  if (err.includes("permission denied")) {
+    fail(
+      "Docker is installed but your user can't talk to it.",
+      "Run `sudo usermod -aG docker $USER`, then log out and back in (or `newgrp docker`) and re-run.",
+    );
+  }
+  fail(
+    "The Docker daemon is not running.",
+    isLinux
+      ? "Start it with `sudo systemctl enable --now docker` and re-run."
+      : "Start Docker Desktop and re-run.",
+  );
 }
 ok("Docker + Compose");
 
