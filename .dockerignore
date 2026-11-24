@@ -1,0 +1,44 @@
+# Dependencies
+**/node_modules
+.pnpm-store
+
+# Next.js and build output
+**/.next
+**/dist
+**/build
+out
+
+# Version control
+.git
+.gitignore
+
+# Environment files
+**/.env
+**/.env.*
+!**/.env.example
+!**/.env.production.example
+
+# IDE and OS
+.vscode
+.idea
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Turborepo and Linters
+.turbo
+.eslintcache
+.prettierrc
+
+# Documentation and meta
+docs
+*.md
+LICENSE
+CONTRIBUTING.md
+build.html
+
+# Docker files
+**/Dockerfile*
+docker-compose*.yaml
+.dockerignore
