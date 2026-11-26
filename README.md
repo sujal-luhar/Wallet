@@ -2,6 +2,9 @@
 
 A digital wallet platform built as a Turborepo + pnpm monorepo: send and receive money (P2P), pay merchants, deposit and withdraw through a mock bank, and manage a merchant account with settlements and refunds.
 
+https://github.com/user-attachments/assets/caad26f1-6e20-4909-be5d-0a92359f8869
+
+
 | App | Port | What it is |
 | --- | --- | --- |
 | `apps/user-app` | 3002 | Customer wallet (Next.js): sign up, deposit, withdraw, P2P transfers, merchant payments |
