@@ -1,0 +1,114 @@
+name: Deploy Wallet to Production
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: production-deploy
+  cancel-in-progress: false
+
+jobs:
+  build-and-push:
+    name: Build & Push Images
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - app: user-app
+            dockerfile: apps/user-app/Dockerfile
+            image: wallet-user-app
+            build_args: |
+              NEXT_PUBLIC_USER_APP_URL=https://wallet-user.sujalluhar.com
+              NEXT_PUBLIC_MERCHANT_APP_URL=https://merchant.sujalluhar.com
+              NEXT_PUBLIC_MOCK_BANK_URL=https://bank.sujalluhar.com
+          - app: merchant-app
+            dockerfile: apps/merchant-app/Dockerfile
+            image: wallet-merchant-app
+            build_args: |
+              NEXT_PUBLIC_USER_APP_URL=https://wallet-user.sujalluhar.com
+              NEXT_PUBLIC_MERCHANT_APP_URL=https://merchant.sujalluhar.com
+              NEXT_PUBLIC_MOCK_BANK_URL=https://bank.sujalluhar.com
+          - app: web
+            dockerfile: apps/web/Dockerfile
+            image: wallet-web
+            build_args: ""
+          - app: mock-bank
+            dockerfile: apps/mock-bank/Dockerfile
+            image: wallet-mock-bank
+            build_args: ""
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and Push Docker Image (${{ matrix.app }})
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ${{ matrix.dockerfile }}
+          platforms: linux/amd64
+          push: true
+          tags: |
+            ${{ secrets.DOCKERHUB_USERNAME }}/${{ matrix.image }}:latest
+            ${{ secrets.DOCKERHUB_USERNAME }}/${{ matrix.image }}:${{ github.sha }}
+          build-args: ${{ matrix.build_args }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  deploy:
+    name: Deploy to EC2
+    needs: build-and-push
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup SSH and Deploy to EC2
+        env:
+          EC2_HOST: ${{ secrets.EC2_HOST }}
+          EC2_USER: ${{ secrets.EC2_USER || 'ubuntu' }}
+          EC2_SSH_KEY: ${{ secrets.EC2_SSH_KEY }}
+          PROD_ENV_FILE: ${{ secrets.PROD_ENV_FILE }}
+          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+        run: |
+          mkdir -p ~/.ssh
+          echo "$EC2_SSH_KEY" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H "$EC2_HOST" >> ~/.ssh/known_hosts
+
+          # Prepare remote deployment directory
+          ssh "$EC2_USER@$EC2_HOST" "mkdir -p ~/wallet/nginx/conf.d"
+
+          # Copy production compose and nginx configuration files
+          scp docker-compose.prod.yaml "$EC2_USER@$EC2_HOST:~/wallet/docker-compose.prod.yaml"
+          scp -r nginx/conf.d/* "$EC2_USER@$EC2_HOST:~/wallet/nginx/conf.d/"
+
+          # Securely write the environment file on EC2
+          echo "$PROD_ENV_FILE" > /tmp/prod.env
+          scp /tmp/prod.env "$EC2_USER@$EC2_HOST:~/wallet/.env"
+          rm -f /tmp/prod.env
+
+          # Execute deployment on EC2
+          ssh "$EC2_USER@$EC2_HOST" bash -c "'
+            cd ~/wallet
+            echo \"Pulling latest images...\"
+            docker compose -f docker-compose.prod.yaml pull
+            echo \"Deploying services...\"
+            docker compose -f docker-compose.prod.yaml up -d --remove-orphans
+            echo \"Checking status...\"
+            docker compose -f docker-compose.prod.yaml ps
+          '"

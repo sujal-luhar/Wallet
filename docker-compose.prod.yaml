@@ -1,0 +1,121 @@
+name: wallet-prod
+
+services:
+  migrate:
+    image: ${DOCKERHUB_USERNAME}/wallet-mock-bank:${IMAGE_TAG:-latest}
+    container_name: wallet-migrate
+    restart: "no"
+    working_dir: /app
+    command: pnpm --filter @wallet/db exec prisma migrate deploy
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+      - DIRECT_DATABASE_URL=${DIRECT_DATABASE_URL}
+
+  user-app:
+    image: ${DOCKERHUB_USERNAME}/wallet-user-app:${IMAGE_TAG:-latest}
+    container_name: wallet-user-app
+    restart: unless-stopped
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      - NODE_ENV=production
+      - PORT=3002
+      - HOSTNAME=0.0.0.0
+      - NEXTAUTH_URL=${USER_APP_URL:-https://wallet-user.sujalluhar.com}
+      - NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
+      - DATABASE_URL=${DATABASE_URL}
+      - COOKIE_DOMAIN=${COOKIE_DOMAIN:-.sujalluhar.com}
+      - USER_APP_URL=${USER_APP_URL:-https://wallet-user.sujalluhar.com}
+      - MERCHANT_APP_URL=${MERCHANT_APP_URL:-https://merchant.sujalluhar.com}
+      - WEB_APP_URL=${WEB_APP_URL:-https://wallet.sujalluhar.com}
+      - MOCK_BANK_URL=${MOCK_BANK_URL:-https://bank.sujalluhar.com}
+      - NEXT_PUBLIC_USER_APP_URL=${USER_APP_URL:-https://wallet-user.sujalluhar.com}
+      - NEXT_PUBLIC_MERCHANT_APP_URL=${MERCHANT_APP_URL:-https://merchant.sujalluhar.com}
+      - NEXT_PUBLIC_MOCK_BANK_URL=${MOCK_BANK_URL:-https://bank.sujalluhar.com}
+      - MOCK_BANK_API_SECRET=${MOCK_BANK_API_SECRET}
+
+  merchant-app:
+    image: ${DOCKERHUB_USERNAME}/wallet-merchant-app:${IMAGE_TAG:-latest}
+    container_name: wallet-merchant-app
+    restart: unless-stopped
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      - NODE_ENV=production
+      - PORT=3003
+      - HOSTNAME=0.0.0.0
+      - NEXTAUTH_URL=${MERCHANT_APP_URL:-https://merchant.sujalluhar.com}
+      - NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
+      - DATABASE_URL=${DATABASE_URL}
+      - COOKIE_DOMAIN=${COOKIE_DOMAIN:-.sujalluhar.com}
+      - USER_APP_URL=${USER_APP_URL:-https://wallet-user.sujalluhar.com}
+      - MERCHANT_APP_URL=${MERCHANT_APP_URL:-https://merchant.sujalluhar.com}
+      - WEB_APP_URL=${WEB_APP_URL:-https://wallet.sujalluhar.com}
+      - MOCK_BANK_URL=${MOCK_BANK_URL:-https://bank.sujalluhar.com}
+      - NEXT_PUBLIC_USER_APP_URL=${USER_APP_URL:-https://wallet-user.sujalluhar.com}
+      - NEXT_PUBLIC_MERCHANT_APP_URL=${MERCHANT_APP_URL:-https://merchant.sujalluhar.com}
+      - NEXT_PUBLIC_MOCK_BANK_URL=${MOCK_BANK_URL:-https://bank.sujalluhar.com}
+      - MOCK_BANK_API_SECRET=${MOCK_BANK_API_SECRET}
+
+  web:
+    image: ${DOCKERHUB_USERNAME}/wallet-web:${IMAGE_TAG:-latest}
+    container_name: wallet-web
+    restart: unless-stopped
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - HOSTNAME=0.0.0.0
+
+  mock-bank:
+    image: ${DOCKERHUB_USERNAME}/wallet-mock-bank:${IMAGE_TAG:-latest}
+    container_name: wallet-mock-bank
+    restart: unless-stopped
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      - NODE_ENV=production
+      - PORT=3001
+      - DATABASE_URL=${DATABASE_URL}
+      - MOCK_BANK_API_SECRET=${MOCK_BANK_API_SECRET}
+      - USER_APP_URL=${USER_APP_URL:-https://wallet-user.sujalluhar.com}
+      - MERCHANT_APP_URL=${MERCHANT_APP_URL:-https://merchant.sujalluhar.com}
+      - WEB_APP_URL=${WEB_APP_URL:-https://wallet.sujalluhar.com}
+      - MOCK_BANK_URL=${MOCK_BANK_URL:-https://bank.sujalluhar.com}
+
+  nginx:
+    image: nginx:alpine
+    container_name: wallet-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      - /etc/letsencrypt:/etc/letsencrypt:ro
+      - /var/www/certbot:/var/www/certbot:ro
+    depends_on:
+      - user-app
+      - merchant-app
+      - web
+      - mock-bank

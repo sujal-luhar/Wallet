@@ -1,0 +1,19 @@
+# Bootstrap configuration for first-time SSL certificate provisioning
+# Use this temporarily if letsencrypt certificates do not exist yet:
+# 1. Temporarily move *.conf to *.conf.bak (or keep only this file)
+# 2. Run nginx and certbot to obtain certs
+# 3. Restore the full SSL *.conf files and reload nginx
+
+server {
+    listen 80;
+    listen [::]:80;
+    server_name wallet.sujalluhar.com wallet-user.sujalluhar.com merchant.sujalluhar.com bank.sujalluhar.com;
+
+    location /.well-known/acme-challenge/ {
+        root /var/www/certbot;
+    }
+
+    location / {
+        return 200 "Waiting for TLS certificate provisioning...\n";
+    }
+}

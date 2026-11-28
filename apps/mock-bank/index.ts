@@ -16,7 +16,23 @@ const allowedOrigins = [
   "http://localhost:3001",
   "http://localhost:3002",
   "http://localhost:3003",
+  ...[
+    process.env.USER_APP_URL,
+    process.env.MERCHANT_APP_URL,
+    process.env.WEB_APP_URL,
+    process.env.MOCK_BANK_URL,
+  ]
+    .filter(Boolean)
+    .map((u) => {
+      try {
+        return new URL(u as string).origin;
+      } catch {
+        return u as string;
+      }
+    }),
 ];
+
+const USER_APP_URL = process.env.USER_APP_URL || "http://localhost:3002";
 
 const corsOptions = {
   origin: (
@@ -238,7 +254,7 @@ app.post("/mock-bank/process", async (req, res) => {
 
   if (action === "SUCCESS") {
     // 1. Redirect client immediately to the loading page
-    const redirectUrl = `http://localhost:3002/payment-success?txId=${txId}`;
+    const redirectUrl = `${USER_APP_URL}/payment-success?txId=${txId}`;
     res.redirect(redirectUrl);
 
     // 2. Simulate 3-second bank processing delay before updating DB
@@ -286,9 +302,13 @@ app.post("/mock-bank/process", async (req, res) => {
       data: { status: "FAILED" },
     });
 
-    const redirectUrl = `http://localhost:3002/payment-success?txId=${txId}`;
+    const redirectUrl = `${USER_APP_URL}/payment-success?txId=${txId}`;
     res.redirect(redirectUrl);
   }
+});
+
+app.get("/health", (req, res) => {
+  res.status(200).json({ ok: true });
 });
 
 app.get("/", (req, res) => {

@@ -82,6 +82,25 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
   secret: authSecret,
+  ...(process.env.COOKIE_DOMAIN
+    ? {
+        cookies: {
+          sessionToken: {
+            name:
+              process.env.NODE_ENV === "production"
+                ? "__Secure-next-auth.session-token"
+                : "next-auth.session-token",
+            options: {
+              httpOnly: true,
+              sameSite: "lax" as const,
+              path: "/",
+              secure: process.env.NODE_ENV === "production",
+              domain: process.env.COOKIE_DOMAIN,
+            },
+          },
+        },
+      }
+    : {}),
   callbacks: {
     // Sync OAuth users to database upon initial login
     async signIn({ user, account }) {
